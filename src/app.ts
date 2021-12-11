@@ -22,8 +22,7 @@ const mongoUrl = "mongodb+srv://jovany:Jj12345@cluster0.4mfvt.mongodb.net/Tradin
 mongoose.Promise = bluebird;
 
 mongoose.connect(mongoUrl, {useUnifiedTopology: true ,useNewUrlParser: true, useCreateIndex: true }).then(
-    () => {Sender.sendPositionToUser({operation: "buy", symbol: "AA", startPrice: 50, },"test1122@gmail.com",100);
-    },
+    () => {}
 ).catch(err => {
     console.log(`MongoDB connection error. Please make sure MongoDB is running. ${err}`);
     // process.exit();
