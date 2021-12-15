@@ -1,4 +1,4 @@
-import { LiveRateStockDocument } from "../models/liveRateStocks";
+import { iexStocksDocument } from "../models/iexStocks";
 import SocketModel, { SocketDocument } from "../models/socket";
 import { AutoPositions } from "../models/AutoPositions";
 import AutoSymbols from "../models/autoSymbols";

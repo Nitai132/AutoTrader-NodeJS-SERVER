@@ -1,4 +1,4 @@
-import Stocks from "../models/liveRateStocks";
+import Stocks from "../models/iexStocks";
 import FindUsers from "./findUsersForPositions.service";
 // הוספת האזנה לסטוקס עבור פוזיציות חדשות ועבור שינוי בפוזיציות קיימות
 export const listenToStockPositions = () => {

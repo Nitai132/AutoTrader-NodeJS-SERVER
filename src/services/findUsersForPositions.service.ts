@@ -1,11 +1,11 @@
-import {LiveRateStockDocument} from "../models/liveRateStocks";
+import {iexStocksDocument} from "../models/iexStocks";
 import UserInfo, {UserInfoDocument} from "../models/usersInfo";
 import UserSetup from "../models/userSetup";
 import AutoUsersPositions from "../models/AutoUsersPositions";
 import Sender from "./sender.service";
 
 // חיפוש משתמשים מחוברים ופעילים עבור אופציות של מניות
-export const findUsersForStockPosition = async (position: LiveRateStockDocument) : Promise<void> => {
+export const findUsersForStockPosition = async (position: iexStocksDocument) : Promise<void> => {
     if (position.operation == "buy") {
         const activeUsers = await UserInfo.find({gatewayStatus: true}, "_id");
         activeUsers.forEach(async (user: UserInfoDocument) => {

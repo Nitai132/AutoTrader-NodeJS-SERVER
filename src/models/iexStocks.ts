@@ -1,7 +1,7 @@
 import {model, Schema, Document} from "mongoose";
 
 
-const LiveRateStockSchema = new Schema({
+const iexStocksSchema = new Schema({
     _id : { type: String},
     symbol: { type: String },
     close: { type: Number },
@@ -14,9 +14,9 @@ const LiveRateStockSchema = new Schema({
     pipsed: { type: Number },
     openPosId: { type: String },
     insertTime: { type: Number }
-},{collection : "liveRateStocks"});
+},{collection : "iexStocks"});
 
-export interface LiveRateStockDocument extends Document {
+export interface iexStocksDocument extends Document {
     symbol?: string,
     close?: number,
     operation?: string,
@@ -30,6 +30,6 @@ export interface LiveRateStockDocument extends Document {
     insertTime?: number
 }
 
-const LiveRateStocks = model<LiveRateStockDocument>("liveRateStocks",LiveRateStockSchema);
+const iexStocks = model<iexStocksDocument>("iexStocks", iexStocksSchema);
 
-export default LiveRateStocks;
+export default iexStocks;
