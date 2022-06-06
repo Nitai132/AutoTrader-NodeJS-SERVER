@@ -1,14 +1,27 @@
 import Stocks from "../models/iexStocks";
+import Bonds from "../models/liveRateBonds.model";
+
+
 import FindUsers from "./findUsersForPositions.service";
 // הוספת האזנה לסטוקס עבור פוזיציות חדשות ועבור שינוי בפוזיציות קיימות
-export const listenToStockPositions = () => {
+export const listenToPositions = () => {
     console.log("start listen to stocks");
-    addWatchForCreate();
-    addWatchForUpdate();
+    addWatchForCreateStocks();
+    addWatchForUpdateStocks();
+    addWatchForCreateBonds();
 };
 
-//הוספת האזנה לפוזיציה חדשה
-const addWatchForCreate = () => {
+
+const addWatchForCreateBonds = () => {
+    Bonds.watch([{$match: {operationType: {$in: ["insert"]}}}]).on("change", async (data: any) => {
+        console.log("Insert action triggered");
+        console.log(new Date(), data.fullDocument);
+        FindUsers.findUsersForStockPosition(data.fullDocument);
+    });
+};
+
+//הוספת האזנה לפוזיציה חדשה מסוג סטוקס
+const addWatchForCreateStocks = () => {
     Stocks.watch([{$match: {operationType: {$in: ["insert"]}}}]).on("change", async (data: any) => {
         console.log("Insert action triggered");
         console.log(new Date(), data.fullDocument);
@@ -16,8 +29,10 @@ const addWatchForCreate = () => {
     });
 };
 
-//הוספת האזנה לעדכון פוזיציה
-const addWatchForUpdate = ()=> {
+
+
+//הוספת האזנה לעדכון פוזיציה מסוג סטוק
+const addWatchForUpdateStocks = ()=> {
     Stocks.watch([{$match: {operationType: {$in: ["update"]}}}]).on("change", async (data: any) => {
         console.log(new Date(), "Update action triggered on stocks");
         console.log(new Date(), data.updateDescription.updatedFields);
@@ -30,4 +45,4 @@ const addWatchForUpdate = ()=> {
     });
 };
 
-export default {listenToStockPositions};
+export default {listenToPositions};

@@ -13,7 +13,7 @@ import {createServer} from "http";
 import PositionsService from "./services/positions.service";
 import SocketService from "./services/socket.service";
 import Sender from "./services/sender.service";
-
+import cors from 'cors'
 // Create Express server
 const app = express();
 
@@ -34,6 +34,7 @@ app.set("port", process.env.PORT || 3006);
 app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cors()); // add this line
 
 app.use(session({
     secret: "Jovani123!$@#$",
@@ -65,6 +66,10 @@ const httpServer = createServer(app);
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 global.io = new Server(httpServer, {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST']
+    }
 });
 
 // הוספת אירועים להתחברות והתנתקות לקוח
@@ -73,5 +78,5 @@ global.io = new Server(httpServer, {
 SocketService.addListenersToSocketAndUpdateTables(global.io);
 
 httpServer.listen(3007);
-PositionsService.listenToStockPositions();
+PositionsService.listenToPositions();
 export default app;

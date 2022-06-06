@@ -8,6 +8,7 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
     io.on("connection", async (socket: Socket) => {
         const user = socket.handshake.auth?.user;
         const filter = {user: user};
+        console.log('user connected', socket.id);
         await SocketModel.findOneAndUpdate(filter, {
             id: socket.id,
             user: user
@@ -15,14 +16,13 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
             useFindAndModify: false,
             upsert: true
         });
-
         const userInfoFilter = {_id: user};
         await UserInfoModel.findOneAndUpdate(userInfoFilter, {
             gatewayStatus: true
         } as UserInfoDocument, {
             useFindAndModify: false
         });
-
+        
         //אירוע התנתקות לקוח
         socket.on("disconnect", async () => {
             await SocketModel.deleteOne({
@@ -33,7 +33,7 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
             } as UserInfoDocument, {
                 useFindAndModify: false
             });
-        });
+        });       
     });
 };
 
