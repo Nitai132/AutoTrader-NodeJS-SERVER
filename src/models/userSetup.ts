@@ -8,6 +8,7 @@ const UserSetupSchema = new Schema<UserSetupDocument>({
     bonds: Object,
     comodity: Object,
     currencyPairs: Object,
+    crypto: Object,
     indexes: Object,
     doubleTheTradeValues: Object,
     tradingStatus: Boolean
@@ -21,6 +22,7 @@ export interface UserSetupDocument extends Document {
     bonds: any,
     comodity: any,
     currencyPairs: any,
+    crypto: any
     indexes: any,
     doubleTheTradeValues: any,
     tradingStatus: any

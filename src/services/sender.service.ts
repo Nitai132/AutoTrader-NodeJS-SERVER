@@ -5,7 +5,7 @@ import AutoUsersSymbols from '../models/AutoUsersSymbols';
 import AutoUsersPositions from "../models/AutoUsersPositions";
 
 const sendPositionToUser = async (position: any, userSetup: any, quantities: any, type: any) => {
-    console.log(userSetup.userEmail, type);
+    console.log(userSetup.userEmail, type, position, quantities);
     const filter = { user: userSetup.userEmail };
     const socket = await SocketModel.findOne(filter);
     const symbolFilter = { Symbol: position.symbol.replace("#", "") };
@@ -17,9 +17,31 @@ const sendPositionToUser = async (position: any, userSetup: any, quantities: any
         }
     })
     if (UserHaveSymbol) {
-        console.log('symbol exists');
-        // console.log({
+        console.log({
+            user: userSetup.userEmail,
+            positionType: type,
+            action: position.operation.toUpperCase(),
+            symbol: position.symbol.replace("#", ""),
+            technologies: userSetup.stocks.financialTechnology,
+            quantities: quantities,
+            startPrice: position.startPrice,
+            stopLoss: userSetup.stocks.stopLoss.useSystemStopLoss ? position.sp.currentStopPrice : userSetup.stocks.stopLoss.userStopLoss,
+            riskManagment: userSetup.stocks.riskManagment,
+            takeProfit: {
+                useTakeProfit: userSetup.stocks.takeProfit.useTakeProfit,
+                takeProfit: userSetup.stocks.takeProfit.systemTakeProfit ? position.tp : userSetup.stocks.takeProfit.userTakeProfit
+            },
+            doubleTheTrade: userSetup.doubleTheTradeValues,
+            // exchange: autoSymbol.exchange
+        })
+
+
+
+
+        //@ts-ignore
+        // await global.io.to(socket.id).emit("newPosition", {
         //     user: userSetup.userEmail,
+        //     position type: type
         //     action: position.operation.toUpperCase(),
         //     symbol: position.symbol.replace("#", ""),
         //     technologies: userSetup.stocks.financialTechnology,
@@ -28,33 +50,21 @@ const sendPositionToUser = async (position: any, userSetup: any, quantities: any
         //     stopLoss: userSetup.stocks.stopLoss.useSystemStopLoss ? position.sp.currentStopPrice : userSetup.stocks.stopLoss.userStopLoss,
         //     riskManagment: userSetup.stocks.riskManagment,
         //     takeProfit: {
-        //         useTakeProfit: userSetup.stocks.takeProfit.useTakeProfit, 
+        //         useTakeProfit: userSetup.stocks.takeProfit.useTakeProfit,
         //         takeProfit: userSetup.stocks.takeProfit.systemTakeProfit ? position.tp : userSetup.stocks.takeProfit.userTakeProfit
         //     },
         //     doubleTheTrade: userSetup.doubleTheTradeValues,
-        //     exchange: autoSymbol.exchange
-        // })
-
-
-
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        // await global.io.to(socket.id).emit("message", {
-        //     action: position.operation.toUpperCase(),
-        //     symbol: position.symbol.replace("#", ""),
-        //     quantity: 100,
-        //     limitPrice: position.startPrice,
-        //     stopLossLimitPrice: position.startPrice - 1,
-        //     takeProfitLimitPrice: position.startPrice + 2,
-        //     exchange: autoSymbol.exchange
+            // exchange: autoSymbol.exchange
         // } as AutoPositions)
 
         await AutoUsersPositions.updateOne(
             { user: userSetup.userEmail },
-        // @ts-expect-error
+            // @ts-expect-error
             { $push: { [type]: { id: position._id, active: true, createdAt: Date.now() } } }
         )
     }
 };
+
+
 
 export default { sendPositionToUser };
