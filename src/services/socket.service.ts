@@ -7,6 +7,7 @@ import UserPositionsIB, {usersPositionsIBDocument} from '../models/usersPosition
 const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>) : void => {
     //אירוע התחברות לקוח
     io.on("connection", async (socket: Socket) => {
+
         const user = socket.handshake.auth?.user;
         const filter = {user: user};
         console.log('user connected', socket.id);
