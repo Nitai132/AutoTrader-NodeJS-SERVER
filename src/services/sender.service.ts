@@ -20,6 +20,23 @@ const sendPositionToUser = async (position: any, userSetup: any, quantities: any
         console.log({
             user: userSetup.userEmail,
             positionType: type,
+            operation: position.operation.toUpperCase(),
+            symbol: position.symbol.replace("#", ""),
+            technologies: userSetup.type.financialTechnology,
+            quantities: quantities,
+            takeProfit: {
+                useTakeProfit: userSetup.type.takeProfit.useTakeProfit,
+                takeProfit: userSetup.type.takeProfit.userTakeProfit
+            },
+        })
+
+
+
+
+        //@ts-ignore
+        await global.io.to(socket.id).emit("newPosition", {
+            user: userSetup.userEmail,
+            positionType: type,
             action: position.operation.toUpperCase(),
             symbol: position.symbol.replace("#", ""),
             technologies: userSetup.stocks.financialTechnology,
@@ -32,30 +49,7 @@ const sendPositionToUser = async (position: any, userSetup: any, quantities: any
                 takeProfit: userSetup.stocks.takeProfit.systemTakeProfit ? position.tp : userSetup.stocks.takeProfit.userTakeProfit
             },
             doubleTheTrade: userSetup.doubleTheTradeValues,
-            // exchange: autoSymbol.exchange
-        })
-
-
-
-
-        //@ts-ignore
-        // await global.io.to(socket.id).emit("newPosition", {
-        //     user: userSetup.userEmail,
-        //     position type: type
-        //     action: position.operation.toUpperCase(),
-        //     symbol: position.symbol.replace("#", ""),
-        //     technologies: userSetup.stocks.financialTechnology,
-        //     quantities: quantities,
-        //     startPrice: position.startPrice,
-        //     stopLoss: userSetup.stocks.stopLoss.useSystemStopLoss ? position.sp.currentStopPrice : userSetup.stocks.stopLoss.userStopLoss,
-        //     riskManagment: userSetup.stocks.riskManagment,
-        //     takeProfit: {
-        //         useTakeProfit: userSetup.stocks.takeProfit.useTakeProfit,
-        //         takeProfit: userSetup.stocks.takeProfit.systemTakeProfit ? position.tp : userSetup.stocks.takeProfit.userTakeProfit
-        //     },
-        //     doubleTheTrade: userSetup.doubleTheTradeValues,
-            // exchange: autoSymbol.exchange
-        // } as AutoPositions)
+        } as AutoPositions)
 
         await AutoUsersPositions.updateOne(
             { user: userSetup.userEmail },
