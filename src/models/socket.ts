@@ -1,6 +1,6 @@
 import { Schema, model, Document } from "mongoose";
 
-const SocketSchema = new Schema({
+const SocketSchema = new Schema<SocketDocument>({
     createTime: { type: Date, default: Date.now },
 
     id: {

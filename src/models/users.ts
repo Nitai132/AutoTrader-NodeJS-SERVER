@@ -1,6 +1,6 @@
 import { Schema, model, Document } from "mongoose";
 
-const userSchema = new Schema<UserDocument>({ //סכמה משתמש
+const userSchema = new Schema({ //סכמה משתמש
     _id : String,
     firstName: String, //שם פרטי
     lastName: String, //שם משפחה
@@ -9,7 +9,7 @@ const userSchema = new Schema<UserDocument>({ //סכמה משתמש
     password: String, //סיסמא
     isAdmin: Number, //הרשאות
     credits: Number //קרדיטים
-}, { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } });
+}, { collection: "users", timestamps: { createdAt: "created_at", updatedAt: "updated_at" } });
 
 export interface UserDocument extends Document {
     firstName?: string; //שם פרטי
@@ -22,4 +22,6 @@ export interface UserDocument extends Document {
 }
 
 
-export const User = model<UserDocument>("User", userSchema);
+const Users = model<UserDocument>("users", userSchema);
+
+export default Users;

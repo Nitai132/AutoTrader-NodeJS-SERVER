@@ -13,8 +13,16 @@ import { createServer } from "http";
 import PositionsService from "./services/positions.service";
 import SocketService from "./services/socket.service";
 import Sender from "./services/sender.service";
+import passport from 'passport';
 import cors from 'cors'
 import positionsController from './controllers/positionsController';
+
+const LocalStrategy = require('passport-local').Strategy;
+const { localStrategyHandler, serializeUser, deserializeUser } = require('./config/passport');
+const passportConfig = {
+    usernameField: 'email',
+    passwordField: 'password'
+}
 
 // Create Express server
 const app = express();
@@ -32,7 +40,7 @@ mongoose.Promise = bluebird;
 app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors()); // add this line
+app.use(cors());
 
 app.use(session({
     secret: "Jovani123!$@#$",
@@ -50,6 +58,11 @@ app.use(session({
         maxAge: 60 * 60000 * 24 * 7
     },
 }));
+
+// passport.use('local', new LocalStrategy(localStrategyHandler, passportConfig));
+// passport.serializeUser(serializeUser); //סיריאלייז למשתמש
+// passport.deserializeUser(deserializeUser); //דיסיריאלייז למשתמש
+
 
 // app.use(passport.initialize());
 // app.use(passport.session());
@@ -86,7 +99,6 @@ const init = async () => { //פונקצייה חכמה שמוודאת התחבר
 init();
 
 
-
 //הגדרות socket.io
 const httpServer = createServer(app);
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -101,6 +113,8 @@ global.io = new Server(httpServer, {
 // הוספת אירועים להתחברות והתנתקות לקוח
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
+
+
 SocketService.addListenersToSocketAndUpdateTables(global.io);
 
 httpServer.listen(3007);
