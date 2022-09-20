@@ -26,7 +26,7 @@ const sendPositionToUser = async (position: any, userSetup: any, quantities: any
             quantities: quantities,
             takeProfit: {
                 useTakeProfit: userSetup.type.takeProfit.useTakeProfit,
-                takeProfit: userSetup.type.takeProfit.userTakeProfit
+                takeProfit: userSetup.type.takeProfit.takeProfitPercentage
             },
         })
 
@@ -46,7 +46,7 @@ const sendPositionToUser = async (position: any, userSetup: any, quantities: any
             riskManagment: userSetup.stocks.riskManagment,
             takeProfit: {
                 useTakeProfit: userSetup.stocks.takeProfit.useTakeProfit,
-                takeProfit: userSetup.stocks.takeProfit.systemTakeProfit ? position.tp : userSetup.stocks.takeProfit.userTakeProfit
+                takeProfit: userSetup.stocks.takeProfit.takeProfitPercentage
             },
             doubleTheTrade: userSetup.doubleTheTradeValues,
         } as AutoPositions)

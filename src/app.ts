@@ -16,6 +16,7 @@ import Sender from "./services/sender.service";
 import passport from 'passport';
 import cors from 'cors'
 import positionsController from './controllers/positionsController';
+import authController from './controllers/authController';
 
 const LocalStrategy = require('passport-local').Strategy;
 const { localStrategyHandler, serializeUser, deserializeUser } = require('./config/passport');
@@ -75,6 +76,7 @@ app.use(
 
 
 app.use('/positions', positionsController);
+app.use('/auth', authController)
 
 
 const init = async () => { //פונקצייה חכמה שמוודאת התחברות לדאטא בייס לפני הפעלת השרת

@@ -137,6 +137,12 @@ export const findUsersForBondsPosition = async (position: liveRateBondsDocument)
     activeUsers.forEach(async (user: UserInfoDocument) => {
         const userSetup = await UserSetup.findOne({ userEmail: user._id });
         const activeBuyAndSellPosition = await getActiveBuyAndSell(position, userSetup, 'bonds');
+        const Quantities = {
+            stocks: 0, 
+            options: 0,
+            futureContractsAmount: userSetup.bonds.rates.futureContracts.amount, 
+            futureContractOptionsAmount: userSetup.bonds.rates.futureContracts.amount
+        }
         if (
             userSetup.bonds.activeAccount &&
             activeBuyAndSellPosition &&
@@ -159,7 +165,7 @@ export const findUsersForBondsPosition = async (position: liveRateBondsDocument)
                 let tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, 'bonds');
                 if (tradesLimitAllowed) {
                     console.log('success');
-                    Sender.sendPositionToUser(position, userSetup, userSetup.bonds.amount, 'bonds');
+                    Sender.sendPositionToUser(position, userSetup, Quantities, 'bonds');
                 }
             }
         }
@@ -171,6 +177,12 @@ export const findUsersForComodityPosition = async (position: liveRateBondsDocume
     activeUsers.forEach(async (user: UserInfoDocument) => {
         const userSetup = await UserSetup.findOne({ userEmail: user._id });
         const activeBuyAndSellPosition = await getActiveBuyAndSell(position, userSetup, 'comodity');
+        const Quantities = {
+            stocks: 0, 
+            options: 0,
+            futureContractsAmount: userSetup.comodity.rates.futureContracts.amount, 
+            futureContractOptionsAmount: userSetup.comodity.rates.futureContracts.amount
+        }
         if (
             userSetup.comodity.activeAccount &&
             activeBuyAndSellPosition &&
@@ -193,7 +205,7 @@ export const findUsersForComodityPosition = async (position: liveRateBondsDocume
                 let tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, 'comodity');
                 if (tradesLimitAllowed) {
                     console.log('success');
-                    Sender.sendPositionToUser(position, userSetup, userSetup.comodity.amount, 'comodity');
+                    Sender.sendPositionToUser(position, userSetup, Quantities, 'comodity');
                 }
             }
         }
@@ -205,6 +217,12 @@ export const findUsersForPairsPosition = async (position: liveRateBondsDocument)
     activeUsers.forEach(async (user: UserInfoDocument) => {
         const userSetup = await UserSetup.findOne({ userEmail: user._id });
         const activeBuyAndSellPosition = await getActiveBuyAndSell(position, userSetup, 'currencyPairs');
+        const Quantities = {
+            stocks: 0, 
+            options: 0,
+            futureContractsAmount: userSetup.currencyPairs.rates.futureContracts.amount, 
+            futureContractOptionsAmount: userSetup.currencyPairs.rates.futureContracts.amount
+        }
         if (
             userSetup.currencyPairs.activeAccount &&
             activeBuyAndSellPosition &&
@@ -227,7 +245,7 @@ export const findUsersForPairsPosition = async (position: liveRateBondsDocument)
                 let tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, 'currencyPairs');
                 if (tradesLimitAllowed) {
                     console.log('success');
-                    Sender.sendPositionToUser(position, userSetup, userSetup.currencyPairs.amount, 'currencyPairs');
+                    Sender.sendPositionToUser(position, userSetup, Quantities, 'currencyPairs');
                 }
             }
         }
@@ -239,6 +257,12 @@ export const findUsersForCryptoPosition = async (position: liveRateBondsDocument
     activeUsers.forEach(async (user: UserInfoDocument) => {
         const userSetup = await UserSetup.findOne({ userEmail: user._id });
         const activeBuyAndSellPosition = await getActiveBuyAndSell(position, userSetup, 'crypto');
+        const Quantities = {
+            stocks: 0, 
+            options: 0,
+            futureContractsAmount: userSetup.crypto.rates.futureContracts.amount, 
+            futureContractOptionsAmount: userSetup.crypto.rates.futureContracts.amount
+        }
         if (
             userSetup.crypto.activeAccount &&
             activeBuyAndSellPosition &&
@@ -261,7 +285,7 @@ export const findUsersForCryptoPosition = async (position: liveRateBondsDocument
                 let tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, 'crypto');
                 if (tradesLimitAllowed) {
                     console.log('success');
-                    Sender.sendPositionToUser(position, userSetup, userSetup.crypto.amount, 'crypto');
+                    Sender.sendPositionToUser(position, userSetup, Quantities, 'crypto');
                 }
             }
         }
@@ -273,6 +297,12 @@ export const findUsersForIndexesPosition = async (position: liveRateBondsDocumen
     activeUsers.forEach(async (user: UserInfoDocument) => {
         const userSetup = await UserSetup.findOne({ userEmail: user._id });
         const activeBuyAndSellPosition = await getActiveBuyAndSell(position, userSetup, 'indexes');
+        const Quantities = {
+            stocks: 0, 
+            options: 0,
+            futureContractsAmount: userSetup.indexes.rates.futureContracts.amount, 
+            futureContractOptionsAmount: userSetup.indexes.rates.futureContracts.amount
+        }
         if (
             userSetup.indexes.activeAccount &&
             activeBuyAndSellPosition &&
@@ -295,7 +325,7 @@ export const findUsersForIndexesPosition = async (position: liveRateBondsDocumen
                 let tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, 'indexes');
                 if (tradesLimitAllowed) {
                     console.log('success');
-                    Sender.sendPositionToUser(position, userSetup, userSetup.indexes.amount, 'indexes');
+                    Sender.sendPositionToUser(position, userSetup, Quantities, 'indexes');
                 }
             }
         }
