@@ -2,8 +2,8 @@ import {Document, model, Schema, Types } from "mongoose";
 
 export interface optionsArray extends Document{
     id: any, 
-    active: Boolean, 
-    createdAt: Number
+    active: boolean, 
+    createdAt: number
 }
 
 

@@ -2,24 +2,23 @@ import { model, Schema, Document } from "mongoose";
 
 
 const usersPositionsIBSchema = new Schema({
-    user: { type: String },
-    exchange: { type: String },
-    operation: { type: String },
-    positionType: { type: String },
-    symbol: { type: String },
-    startDate: { type: String },
-    endDate: { type: String },
-    startPrice: { type: Number },
-    endPrice: { type: Number },
-    succeeded: { type: Boolean },
-    pipsed: { type: Number },
-    quantity: { type: Number },
-    currentAccountBalance: { type: Number },
-    stopLoss: { type: Number },
-    takeProfit: { type: Array },
-    stoplossUsed: { type: Boolean },
-    totalBrokerFee: { type: Number }
-
+    user: String,
+    exchange: String,
+    operation: String,
+    positionType: String,
+    symbol: String,
+    startDate: String,
+    endDate: String,
+    startPrice: Number,
+    endPrice: Number,
+    succeeded: Boolean,
+    pipsed: Number,
+    quantity: Number,
+    currentAccountBalance: Number,
+    stopLoss: Number,
+    takeProfit: Array,
+    stoplossUsed: Boolean,
+    totalBrokerFee: Number
 }, { collection: "usersPositionsIB" });
 
 export interface usersPositionsIBDocument extends Document {
@@ -37,7 +36,7 @@ export interface usersPositionsIBDocument extends Document {
     quantity?: number,
     currentAccountBalance?: number,
     stopLoss?: number,
-    takeProfit?: any,
+    takeProfit?: string,
     stoplossUsed?: boolean,
     totalBrokerFee?: number,
 }

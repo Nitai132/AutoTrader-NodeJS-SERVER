@@ -6,11 +6,11 @@ export const closeSpecificPosition = async (user: any, positionType: any, symbol
             user: user,
             positionType: positionType,
             symbol: symbol
-        })
+        });
     } catch (err) {
         console.log(err);
         throw err;
-    };
+    }
 };
 
 export const closeAllPositions = async (user: any) => {
@@ -18,20 +18,20 @@ export const closeAllPositions = async (user: any) => {
         //@ts-ignore
         await global.io.emit("closeAllPositions", {
             user: user
-        })
+        });
     } catch (err) {
         console.log(err);
         throw err;
-    };
+    }
 };
 
 export const extractPositionsDetails = async (user: any) => {
     try {
         //@ts-ignore
         await global.io.emit("extractPositionsDetails", {
-        })
+        });
     } catch (err) {
         console.log(err);
         throw err;
-    };
+    }
 };

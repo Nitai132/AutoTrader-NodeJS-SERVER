@@ -13,17 +13,17 @@ import { createServer } from "http";
 import PositionsService from "./services/positions.service";
 import SocketService from "./services/socket.service";
 import Sender from "./services/sender.service";
-import passport from 'passport';
-import cors from 'cors'
-import positionsController from './controllers/positionsController';
-import authController from './controllers/authController';
+import passport from "passport";
+import cors from "cors";
+import positionsController from "./controllers/positionsController";
+import authController from "./controllers/authController";
 
-const LocalStrategy = require('passport-local').Strategy;
-const { localStrategyHandler, serializeUser, deserializeUser } = require('./config/passport');
+const LocalStrategy = require("passport-local").Strategy;
+// const { localStrategyHandler, serializeUser, deserializeUser } = require('./config/passport');
 const passportConfig = {
-    usernameField: 'email',
-    passwordField: 'password'
-}
+    usernameField: "email",
+    passwordField: "password"
+};
 
 // Create Express server
 const app = express();
@@ -75,8 +75,8 @@ app.use(
 );
 
 
-app.use('/positions', positionsController);
-app.use('/auth', authController)
+// app.use('/positions', positionsController);
+// app.use('/auth', authController)
 
 
 const init = async () => { //פונקצייה חכמה שמוודאת התחברות לדאטא בייס לפני הפעלת השרת
@@ -90,12 +90,12 @@ const init = async () => { //פונקצייה חכמה שמוודאת התחבר
         
         await mongoose.connect(mongoUrl, mongooseConnection);
         server.listen(PORT, () => { //הפעלת השרת
-            console.log('server is up on port' + PORT);
+            console.log("server is up on port" + PORT);
         });
 
     } catch (err) { //במידה והתחברות נכשלה
         console.log(err);
-    };
+    }
 };
 
 init();
@@ -107,8 +107,8 @@ const httpServer = createServer(app);
 // @ts-ignore
 global.io = new Server(httpServer, {
     cors: {
-        origin: '*',
-        methods: ['GET', 'POST']
+        origin: "*",
+        methods: ["GET", "POST"]
     }
 });
 
