@@ -4,77 +4,108 @@ import UserInfoModel, { UserInfoDocument } from "../models/usersInfo";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import UserPositionsIB, { usersPositionsIBDocument } from "../models/usersPositionsIB.model";
 import User from "../models/users";
-
+import AutoUsersPositions, {AutoUsersPositionsDocument} from "../models/AutoUsersPositions";
 
 const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>): void => {
-    
-    //FOR KARAN - NOT SURE IF THIS IS RIGHT BUT IT NEEDS FIXES TO WORK
-    //CUSTOM MIDDLEWARE BEFORE INITING THE SOCKET CONNECTION  
-    io.use(async (socket: Socket) => {
-
-        // const { email, password } = socket.request;
-        let email: any;
-        let password: any;
-        const user = await User.find({ email: email, password: password });
-        if (user) {
-            console.log(user);
-            // KARAN - ADD THE CONNECTION HERE OR NEXT FUNCTION FOR THE CONNECTION
-        } else {
-            console.log(user);
-            // KARAN - ADD THE DISSCONNECT HERE OR PREVENT CONNECTION
-        }
-    });
-
 
     //אירוע התחברות לקוח CONNECTION
     io.on("connection", async (socket: Socket) => {
-        const user = socket.handshake.auth?.user;
-        const filter = { user: user };
-        console.log("user connected", socket.id);
-        await SocketModel.findOneAndUpdate(filter, {
-            id: socket.id,
-            user: user
-        } as SocketDocument, {
-            useFindAndModify: false,
-            upsert: true
-        });
-        const userInfoFilter = { _id: user };
-        await UserInfoModel.findOneAndUpdate(userInfoFilter, {
-            gatewayStatus: true
-        } as UserInfoDocument, {
-            useFindAndModify: false
-        });
+        const user = String(socket.handshake.headers.username);
+        if (socket.handshake.headers.username) {
+            const filter = { user: user };
+            console.log("gateway user connected", socket.id);
+            const userDetails = { email: String(socket.handshake.headers.username), password: String(socket.handshake.headers.passcode) };
+            const auth = await User.findOne(userDetails)
+            if (auth) {
+                console.log('authenticated')
+                socket.emit("authenticated", {
+                    user: socket.handshake.headers.username,
+                    isAuthenticated: true
+                })
+            }
+            else {
+                socket.emit("authenticated", {
+                    user: socket.handshake.headers.username,
+                    isAuthenticated: false
 
-        socket.on("onPositionClose", async (data) => {
-            const userPositionsIB = new UserPositionsIB(data);
+                })
+            }
+            await SocketModel.findOneAndUpdate(filter, {
+                id: socket.id,
+                user: user
+            } as SocketDocument, {
+                useFindAndModify: false,
+                upsert: true
+            });
+            const userInfoFilter = { _id: user };
+            await UserInfoModel.findOneAndUpdate(userInfoFilter, {
+                gatewayStatus: true
+            } as UserInfoDocument, {
+                useFindAndModify: false
+            });
+        }
+
+        else if (socket.handshake.query.email) {
+            console.log("web user connected", socket.id, socket.handshake.query.email);
+            const filter = { user: socket.handshake.query.email }
+            await SocketModel.findOneAndUpdate(filter, {
+                webId: socket.id,
+                user: filter.user,
+            } as SocketDocument, {
+                useFindAndModify: false,
+                upsert: true
+            });
+        }
+        socket.on("onPositionClose", async (arg: any) => {
+            const userPositionsIB = new UserPositionsIB(arg);
             await userPositionsIB.save();
+            await UserInfoModel.findOneAndUpdate({ _id: arg.user }, {
+                currentBalance: arg.currentAccountBalance,
+            } as UserInfoDocument, {
+                useFindAndModify: false,
+                upsert: true
+            })
+            let updateKey = `${arg.positionType}.id`
+            let updateString = `${arg.positionType}.$.active`
+            let updateDoc =  {
+                $set: { [updateString]: false }
+            };
+            await AutoUsersPositions.updateOne({user: arg.user, [updateKey]: arg._id},updateDoc);  
+            
+            if (arg.stoplossUsed) {
+                //need to email user here about stoploss being used on a position
+            }
         });
 
 
-        socket.on("onPositionOpenFailure", (data) => {
-            console.log(data);
+        socket.on("onPositionOpenFailure", (arg) => {
+            console.log(arg);
         });
 
-        socket.on("onPositionCloseFailure", async (data) => {
-            const User = await SocketModel.findOne({ user: data.user });
-            socket.to(User.id).emit("PositionCloseFailure", data);
+        socket.on("onPositionCloseFailure", async (arg) => {
+            const User = await SocketModel.findOne({ id: socket.id });
+            socket.to(User.webId).emit("PositionCloseFailed", arg);
         });
 
-        socket.on("onCloseAllPositionFailure", async (data) => {
-            const User = await SocketModel.findOne({ user: data.user });
-            socket.to(User.id).emit("CloseAllPositionFailure", data);
+        socket.on("onCloseAllPositionFailure", async (arg) => {
+            const User = await SocketModel.findOne({ id: socket.id });
+            socket.to(User.webId).emit("CloseAllPositionFailed", arg);
         });
 
-        socket.on("onExtractPositionsDetails", async (data) => {
-            const User = await SocketModel.findOne({ user: data.user });
-            socket.to(User.id).emit("ExtractPositionsDetails", data);
+        socket.on("onExtractPositionsDetails", async (positions) => {
+            const User = await SocketModel.findOne({ id: socket.id });
+            console.log(positions, 'recieved positions', User);
+            
+            socket.to(User.webId).emit("SendUserPositions", positions);
         });
 
         //אירוע התנתקות לקוח
         socket.on("disconnect", async () => {
-            await SocketModel.deleteOne({
-                id: socket.id
-            });
+            console.log('user Dissconnected')
+            const userInfoFilter = { _id: user };
+            // await SocketModel.deleteOne({
+            //     id: socket.id
+            // });
             await UserInfoModel.findOneAndUpdate(userInfoFilter, {
                 gatewayStatus: false
             } as UserInfoDocument, {

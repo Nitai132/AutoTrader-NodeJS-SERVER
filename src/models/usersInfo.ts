@@ -9,6 +9,9 @@ const userSetupSchema = new Schema({
     comodity: Object,
     currencyPairs: Object,
     indexes: Object,
+    investedBalance: Number,
+    currentBalance: Number,
+    tradesAmount: Object
 }, {collection: "AutoUsersInfo"});
 
 export interface UserInfoDocument extends Document {
@@ -19,7 +22,10 @@ export interface UserInfoDocument extends Document {
     bonds?: any,
     comodity?: any,
     currencyPairs?: any,
-    indexes?: any
+    indexes?: any,
+    investedBalance?: number,
+    currentBalance?: number,
+    tradesAmount?: any
 }
 
 const UserInfo = model<UserInfoDocument>("AutoUsersInfo", userSetupSchema);

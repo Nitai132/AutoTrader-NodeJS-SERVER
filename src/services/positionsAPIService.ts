@@ -28,7 +28,8 @@ export const closeAllPositions = async (user: any) => {
 export const extractPositionsDetails = async (user: any) => {
     try {
         //@ts-ignore
-        await global.io.emit("extractPositionsDetails", {
+        await global.io.emit("extractPositionDetails", {
+            user: user
         });
     } catch (err) {
         console.log(err);

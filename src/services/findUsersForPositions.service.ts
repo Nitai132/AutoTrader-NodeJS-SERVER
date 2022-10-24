@@ -27,7 +27,7 @@ const checkStocksQuantities = (position: any, userSetup: any, type: any) => {
     else if (position.startPrice > 500) {
         priceType = "_1000";
     }
-    
+
 
     const userQuantities: any = {};
     const ratesKeys = Object.keys(userSetup[type].rates);
@@ -84,7 +84,10 @@ const getTodayTradesAmount = async (position: any, userSetup: any, type: any) =>
     const positions = await AutoUsersPositions.findOne({ user: userSetup.userEmail }, `${type}`);
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const todaysPositions = positions[type].filter((position: any) => position.createdAt > startOfToday);
+    let todaysPositions = [];
+    if (positions[type] != null) {
+        todaysPositions = positions[type].filter((position: any) => position.createdAt > startOfToday);
+    }
     if (positions[type] == null || positions[type].length == 0 || todaysPositions.length < userSetup[type].tradesPerDay) {
         return true;
     }
@@ -106,19 +109,19 @@ export const findUsersForStockPosition = async (position: iexStocksDocument): Pr
         ) {
             const userQuantities = await checkStocksQuantities(position, userSetup, "stocks");
             let currentTradingDay = false;
-            if (userSetup.stocks.times.SpecificDays === true) {
+            if (userSetup.stocks.times.SpecificDays === false) {
                 currentTradingDay = await getTradingDays(userSetup, "stocks");
             }
 
             let currentTradingHours = false;
-            if (userSetup.stocks.times.SpecificHours === true) {
+            if (userSetup.stocks.times.SpecificHours === false) {
                 currentTradingHours = await getTradingHours(userSetup, "stocks");
             }
 
             if (
                 Object.keys(userQuantities).length > 0 &&
-                (userSetup.stocks.times.SpecificDays === false || currentTradingDay === true) &&
-                (userSetup.stocks.times.SpecificHours === false || currentTradingHours === true)
+                (userSetup.stocks.times.SpecificDays === true || currentTradingDay === true) &&
+                (userSetup.stocks.times.SpecificHours === true || currentTradingHours === true)
             ) {
                 const tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, "stocks");
                 if (tradesLimitAllowed) {
@@ -138,9 +141,9 @@ export const findUsersForBondsPosition = async (position: liveRateBondsDocument)
         const userSetup = await UserSetup.findOne({ userEmail: user._id });
         const activeBuyAndSellPosition = await getActiveBuyAndSell(position, userSetup, "bonds");
         const Quantities = {
-            stocks: 0, 
+            stocks: 0,
             options: 0,
-            futureContractsAmount: userSetup.bonds.rates.futureContracts.amount, 
+            futureContractsAmount: userSetup.bonds.rates.futureContracts.amount,
             futureContractOptionsAmount: userSetup.bonds.rates.futureContracts.amount
         };
         if (
@@ -149,18 +152,18 @@ export const findUsersForBondsPosition = async (position: liveRateBondsDocument)
             userSetup.tradingStatus
         ) {
             let currentTradingDay = false;
-            if (userSetup.bonds.times.SpecificDays === true) {
+            if (userSetup.bonds.times.SpecificDays === false) {
                 currentTradingDay = await getTradingDays(userSetup, "bonds");
             }
 
             let currentTradingHours = false;
-            if (userSetup.bonds.times.SpecificHours === true) {
+            if (userSetup.bonds.times.SpecificHours === false) {
                 currentTradingHours = await getTradingHours(userSetup, "bonds");
             }
             if (
-                userSetup.bonds.amount > 0 &&
-                (userSetup.bonds.times.SpecificDays === false || currentTradingDay === true) &&
-                (userSetup.bonds.times.SpecificHours === false || currentTradingHours === true)
+                (userSetup.bonds.rates.futureContracts.amount > 0 || userSetup.bonds.rates.futureContractOptions.amount > 0) &&
+                (userSetup.bonds.times.SpecificDays === true || currentTradingDay === true) &&
+                (userSetup.bonds.times.SpecificHours === true || currentTradingHours === true)
             ) {
                 const tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, "bonds");
                 if (tradesLimitAllowed) {
@@ -172,15 +175,15 @@ export const findUsersForBondsPosition = async (position: liveRateBondsDocument)
     });
 };
 
-export const findUsersForComodityPosition = async (position: liveRateBondsDocument): Promise<void> => {
+export const findUsersForComodityPosition = async (position: liveRateComodityDocument): Promise<void> => {
     const activeUsers = await UserInfo.find({ gatewayStatus: true }, "_id");
     activeUsers.forEach(async (user: UserInfoDocument) => {
         const userSetup = await UserSetup.findOne({ userEmail: user._id });
         const activeBuyAndSellPosition = await getActiveBuyAndSell(position, userSetup, "comodity");
         const Quantities = {
-            stocks: 0, 
+            stocks: 0,
             options: 0,
-            futureContractsAmount: userSetup.comodity.rates.futureContracts.amount, 
+            futureContractsAmount: userSetup.comodity.rates.futureContracts.amount,
             futureContractOptionsAmount: userSetup.comodity.rates.futureContracts.amount
         };
         if (
@@ -189,18 +192,18 @@ export const findUsersForComodityPosition = async (position: liveRateBondsDocume
             userSetup.tradingStatus
         ) {
             let currentTradingDay = false;
-            if (userSetup.comodity.times.SpecificDays === true) {
+            if (userSetup.comodity.times.SpecificDays === false) {
                 currentTradingDay = await getTradingDays(userSetup, "comodity");
             }
 
             let currentTradingHours = false;
-            if (userSetup.comodity.times.SpecificHours === true) {
+            if (userSetup.comodity.times.SpecificHours === false) {
                 currentTradingHours = await getTradingHours(userSetup, "comodity");
             }
             if (
-                userSetup.comodity.amount > 0 &&
-                (userSetup.comodity.times.SpecificDays === false || currentTradingDay === true) &&
-                (userSetup.comodity.times.SpecificHours === false || currentTradingHours === true)
+                (userSetup.comodity.rates.futureContracts.amount > 0 || userSetup.comodity.rates.futureContractOptions.amount > 0) &&
+                (userSetup.comodity.times.SpecificDays === true || currentTradingDay === true) &&
+                (userSetup.comodity.times.SpecificHours === true || currentTradingHours === true)
             ) {
                 const tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, "comodity");
                 if (tradesLimitAllowed) {
@@ -212,15 +215,15 @@ export const findUsersForComodityPosition = async (position: liveRateBondsDocume
     });
 };
 
-export const findUsersForPairsPosition = async (position: liveRateBondsDocument): Promise<void> => {
+export const findUsersForPairsPosition = async (position: liveRateCurrencyPairsDocument): Promise<void> => {
     const activeUsers = await UserInfo.find({ gatewayStatus: true }, "_id");
     activeUsers.forEach(async (user: UserInfoDocument) => {
         const userSetup = await UserSetup.findOne({ userEmail: user._id });
         const activeBuyAndSellPosition = await getActiveBuyAndSell(position, userSetup, "currencyPairs");
         const Quantities = {
-            stocks: 0, 
+            stocks: 0,
             options: 0,
-            futureContractsAmount: userSetup.currencyPairs.rates.futureContracts.amount, 
+            futureContractsAmount: userSetup.currencyPairs.rates.futureContracts.amount,
             futureContractOptionsAmount: userSetup.currencyPairs.rates.futureContracts.amount
         };
         if (
@@ -229,18 +232,18 @@ export const findUsersForPairsPosition = async (position: liveRateBondsDocument)
             userSetup.tradingStatus
         ) {
             let currentTradingDay = false;
-            if (userSetup.currencyPairs.times.SpecificDays === true) {
+            if (userSetup.currencyPairs.times.SpecificDays === false) {
                 currentTradingDay = await getTradingDays(userSetup, "currencyPairs");
             }
 
             let currentTradingHours = false;
-            if (userSetup.currencyPairs.times.SpecificHours === true) {
+            if (userSetup.currencyPairs.times.SpecificHours === false) {
                 currentTradingHours = await getTradingHours(userSetup, "currencyPairs");
             }
             if (
-                userSetup.currencyPairs.amount > 0 &&
-                (userSetup.currencyPairs.times.SpecificDays === false || currentTradingDay === true) &&
-                (userSetup.currencyPairs.times.SpecificHours === false || currentTradingHours === true)
+                (userSetup.currencyPairs.rates.futureContracts.amount > 0 || userSetup.currencyPairs.rates.futureContractOptions.amount > 0) &&
+                (userSetup.currencyPairs.times.SpecificDays === true || currentTradingDay === true) &&
+                (userSetup.currencyPairs.times.SpecificHours === true || currentTradingHours === true)
             ) {
                 const tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, "currencyPairs");
                 if (tradesLimitAllowed) {
@@ -252,15 +255,15 @@ export const findUsersForPairsPosition = async (position: liveRateBondsDocument)
     });
 };
 
-export const findUsersForCryptoPosition = async (position: liveRateBondsDocument): Promise<void> => {
+export const findUsersForCryptoPosition = async (position: liveRateCryptoDocument): Promise<void> => {
     const activeUsers = await UserInfo.find({ gatewayStatus: true }, "_id");
     activeUsers.forEach(async (user: UserInfoDocument) => {
         const userSetup = await UserSetup.findOne({ userEmail: user._id });
         const activeBuyAndSellPosition = await getActiveBuyAndSell(position, userSetup, "crypto");
         const Quantities = {
-            stocks: 0, 
+            stocks: 0,
             options: 0,
-            futureContractsAmount: userSetup.crypto.rates.futureContracts.amount, 
+            futureContractsAmount: userSetup.crypto.rates.futureContracts.amount,
             futureContractOptionsAmount: userSetup.crypto.rates.futureContracts.amount
         };
         if (
@@ -269,18 +272,18 @@ export const findUsersForCryptoPosition = async (position: liveRateBondsDocument
             userSetup.tradingStatus
         ) {
             let currentTradingDay = false;
-            if (userSetup.crypto.times.SpecificDays === true) {
+            if (userSetup.crypto.times.SpecificDays === false) {
                 currentTradingDay = await getTradingDays(userSetup, "crypto");
             }
 
             let currentTradingHours = false;
-            if (userSetup.crypto.times.SpecificHours === true) {
+            if (userSetup.crypto.times.SpecificHours === false) {
                 currentTradingHours = await getTradingHours(userSetup, "crypto");
             }
             if (
-                userSetup.crypto.amount > 0 &&
-                (userSetup.crypto.times.SpecificDays === false || currentTradingDay === true) &&
-                (userSetup.crypto.times.SpecificHours === false || currentTradingHours === true)
+                (userSetup.crypto.rates.futureContracts.amount > 0 || userSetup.crypto.rates.futureContractOptions.amount > 0) &&
+                (userSetup.crypto.times.SpecificDays === true || currentTradingDay === true) &&
+                (userSetup.crypto.times.SpecificHours === true || currentTradingHours === true)
             ) {
                 const tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, "crypto");
                 if (tradesLimitAllowed) {
@@ -292,15 +295,15 @@ export const findUsersForCryptoPosition = async (position: liveRateBondsDocument
     });
 };
 
-export const findUsersForIndexesPosition = async (position: liveRateBondsDocument): Promise<void> => {
+export const findUsersForIndexesPosition = async (position: liveRateIndexesDocument): Promise<void> => {
     const activeUsers = await UserInfo.find({ gatewayStatus: true }, "_id");
     activeUsers.forEach(async (user: UserInfoDocument) => {
         const userSetup = await UserSetup.findOne({ userEmail: user._id });
         const activeBuyAndSellPosition = await getActiveBuyAndSell(position, userSetup, "indexes");
         const Quantities = {
-            stocks: 0, 
+            stocks: 0,
             options: 0,
-            futureContractsAmount: userSetup.indexes.rates.futureContracts.amount, 
+            futureContractsAmount: userSetup.indexes.rates.futureContracts.amount,
             futureContractOptionsAmount: userSetup.indexes.rates.futureContracts.amount
         };
         if (
@@ -309,18 +312,18 @@ export const findUsersForIndexesPosition = async (position: liveRateBondsDocumen
             userSetup.tradingStatus
         ) {
             let currentTradingDay = false;
-            if (userSetup.indexes.times.SpecificDays === true) {
+            if (userSetup.indexes.times.SpecificDays === false) {
                 currentTradingDay = await getTradingDays(userSetup, "indexes");
             }
 
             let currentTradingHours = false;
-            if (userSetup.indexes.times.SpecificHours === true) {
+            if (userSetup.indexes.times.SpecificHours === false) {
                 currentTradingHours = await getTradingHours(userSetup, "indexes");
             }
             if (
-                userSetup.indexes.amount > 0 &&
-                (userSetup.indexes.times.SpecificDays === false || currentTradingDay === true) &&
-                (userSetup.indexes.times.SpecificHours === false || currentTradingHours === true)
+                (userSetup.indexes.rates.futureContracts.amount > 0 || userSetup.indexes.rates.futureContractOptions.amount > 0) &&
+                (userSetup.indexes.times.SpecificDays === true || currentTradingDay === true) &&
+                (userSetup.indexes.times.SpecificHours === true || currentTradingHours === true)
             ) {
                 const tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, "indexes");
                 if (tradesLimitAllowed) {
@@ -333,10 +336,10 @@ export const findUsersForIndexesPosition = async (position: liveRateBondsDocumen
 };
 
 
-export default { 
-    findUsersForStockPosition, 
-    findUsersForBondsPosition, 
-    findUsersForComodityPosition, 
+export default {
+    findUsersForStockPosition,
+    findUsersForBondsPosition,
+    findUsersForComodityPosition,
     findUsersForPairsPosition,
     findUsersForCryptoPosition,
     findUsersForIndexesPosition

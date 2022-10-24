@@ -1,9 +1,9 @@
 import Stocks from "../models/iexStocks";
 import Bonds from "../models/liveRateBonds.model";
 import Comodity from "../models/liveRateComodity.model";
-import Pairs from "../models/liveRateBonds.model";
-import Crypto from "../models/liveRateBonds.model";
-import Indexes from "../models/liveRateBonds.model";
+import Pairs from "../models/liveRateCurrencyPairs.model";
+import Crypto from "../models/liveRateCrypto.model";
+import Indexes from "../models/liveRateIndexes.model";
 
 import FindUsers from "./findUsersForPositions.service";
 

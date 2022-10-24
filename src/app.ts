@@ -75,8 +75,8 @@ app.use(
 );
 
 
-// app.use('/positions', positionsController);
-// app.use('/auth', authController)
+app.use('/positions', positionsController);
+app.use('/auth', authController)
 
 
 const init = async () => { //פונקצייה חכמה שמוודאת התחברות לדאטא בייס לפני הפעלת השרת
