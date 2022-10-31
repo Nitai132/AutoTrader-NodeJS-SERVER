@@ -35,7 +35,7 @@ const sendPositionToUser = async (position: any, userSetup: any, quantities: any
 
 
         //@ts-ignore
-        await global.io.to(socket._id).emit("newPosition", {
+        await global.io.to(socket.id).emit("openPosition", {
             user: userSetup.userEmail,
             _id: position._id,
             exchange: position.exchange,
