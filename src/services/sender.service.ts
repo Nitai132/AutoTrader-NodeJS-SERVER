@@ -21,7 +21,6 @@ const sendPositionToUser = async (position: any, userSetup: any, quantities: any
         console.log({
             user: userSetup.userEmail,
             _id: position._id,
-            exchange: position.exchange,
             positionType: type,
             operation: position.operation.toUpperCase(),
             symbol: position.symbol.replace("#", ""),
@@ -38,7 +37,8 @@ const sendPositionToUser = async (position: any, userSetup: any, quantities: any
         await global.io.to(socket.id).emit("openPosition", {
             user: userSetup.userEmail,
             _id: position._id,
-            exchange: position.exchange,
+            exchange: 'SMART',
+            margin: userSetup[type].riskManagment.margin,
             positionType: type,
             operation: position.operation.toUpperCase(),
             symbol: position.symbol.replace("#", ""),
