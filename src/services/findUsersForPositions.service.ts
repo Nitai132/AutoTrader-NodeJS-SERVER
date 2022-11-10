@@ -143,8 +143,8 @@ export const findUsersForBondsPosition = async (position: liveRateBondsDocument)
         const Quantities = {
             stocks: 0,
             options: 0,
-            futureContractsAmount: userSetup.bonds.rates.futureContracts.amount,
-            futureContractOptionsAmount: userSetup.bonds.rates.futureContracts.amount
+            futureContract: userSetup.bonds.rates.futureContracts.amount,
+            futureContractOptions: userSetup.bonds.rates.futureContracts.amount
         };
         if (
             userSetup.bonds.activeAccount &&
@@ -183,8 +183,8 @@ export const findUsersForComodityPosition = async (position: liveRateComodityDoc
         const Quantities = {
             stocks: 0,
             options: 0,
-            futureContractsAmount: userSetup.comodity.rates.futureContracts.amount,
-            futureContractOptionsAmount: userSetup.comodity.rates.futureContracts.amount
+            futureContract: userSetup.comodity.rates.futureContracts.amount,
+            futureContractOptions: userSetup.comodity.rates.futureContracts.amount
         };
         if (
             userSetup.comodity.activeAccount &&
@@ -223,8 +223,8 @@ export const findUsersForPairsPosition = async (position: liveRateCurrencyPairsD
         const Quantities = {
             stocks: 0,
             options: 0,
-            futureContractsAmount: userSetup.currencyPairs.rates.futureContracts.amount,
-            futureContractOptionsAmount: userSetup.currencyPairs.rates.futureContracts.amount
+            futureContract: userSetup.currencyPairs.rates.futureContracts.amount,
+            futureContractOptions: userSetup.currencyPairs.rates.futureContracts.amount
         };
         if (
             userSetup.currencyPairs.activeAccount &&
@@ -263,8 +263,8 @@ export const findUsersForCryptoPosition = async (position: liveRateCryptoDocumen
         const Quantities = {
             stocks: 0,
             options: 0,
-            futureContractsAmount: userSetup.crypto.rates.futureContracts.amount,
-            futureContractOptionsAmount: userSetup.crypto.rates.futureContracts.amount
+            futureContract: userSetup.crypto.rates.futureContracts.amount,
+            futureContractOptions: userSetup.crypto.rates.futureContracts.amount
         };
         if (
             userSetup.crypto.activeAccount &&
@@ -303,8 +303,8 @@ export const findUsersForIndexesPosition = async (position: liveRateIndexesDocum
         const Quantities = {
             stocks: 0,
             options: 0,
-            futureContractsAmount: userSetup.indexes.rates.futureContracts.amount,
-            futureContractOptionsAmount: userSetup.indexes.rates.futureContracts.amount
+            futureContract: userSetup.indexes.rates.futureContracts.amount,
+            futureContractOptions: userSetup.indexes.rates.futureContracts.amount
         };
         if (
             userSetup.indexes.activeAccount &&

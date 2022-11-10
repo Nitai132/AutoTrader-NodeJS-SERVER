@@ -37,7 +37,6 @@ const sendPositionToUser = async (position: any, userSetup: any, quantities: any
         await global.io.to(socket.id).emit("openPosition", {
             user: userSetup.userEmail,
             _id: position._id,
-            exchange: 'SMART',
             margin: userSetup[type].riskManagment.margin,
             positionType: type,
             operation: position.operation.toUpperCase(),
