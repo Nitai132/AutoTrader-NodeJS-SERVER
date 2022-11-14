@@ -21,6 +21,7 @@ const sendPositionToUser = async (position: any, userSetup: any, quantities: any
         console.log({
             user: userSetup.userEmail,
             _id: position._id,
+            margin: userSetup[type].riskManagment.margin,
             positionType: type,
             operation: position.operation.toUpperCase(),
             symbol: position.symbol.replace("#", ""),
