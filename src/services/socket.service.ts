@@ -104,7 +104,7 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
             let updateDoc = {
                 $set: { [updateString]: false }
             };
-            await AutoUsersPositions.updateOne({ user: arg.user, [updateKey]: arg._id }, updateDoc);
+            await AutoUsersPositions.updateOne({ user: arg.user, [updateKey]: arg.mongoID }, updateDoc);
 
             if (arg.stoplossUsed) {
                 //need to email user here about stoploss being used on a position
