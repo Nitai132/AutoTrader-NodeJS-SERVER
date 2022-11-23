@@ -4,9 +4,43 @@ import UserInfoModel, { UserInfoDocument } from "../models/usersInfo";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import UserPositionsIB, { usersPositionsIBDocument } from "../models/usersPositionsIB.model";
 import User from "../models/users";
-import AutoUsersPositions, {AutoUsersPositionsDocument} from "../models/AutoUsersPositions";
+import AutoUsersPositions, { AutoUsersPositionsDocument } from "../models/AutoUsersPositions";
+import nodemailer from 'nodemailer';
 
 const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>): void => {
+
+
+    const sendClosePositionMail = async (email: any) => {
+        try {
+   
+            var transporter = nodemailer.createTransport({
+                host: 'box2539.bluehost.com',
+                port: 465,
+                secure: true,
+                auth: {
+                    user: 'support.ib@tradingandcoffeeapplication.com',
+                    pass: 'JOVANYFOREVEr34189696#@#'
+                },
+                tls : { rejectUnauthorized: false }
+            });
+            var mailOptions = {
+                from: 'support.ib@tradingandcoffeeapplication.com',
+                to: email,
+                subject: 'Trading & Coffee GateWay logged out.',
+                html: `<h3>Your gateway has been dissconected from the server.</h3>`
+            };
+            transporter.sendMail(mailOptions, function (error, info) {
+                if (error) {
+                    console.log(error);
+                } else {
+                    console.log('Email sent: ' + info.response);
+                }
+            });
+        } catch (err) {
+            console.log(err);
+            throw err;
+        }
+    }
 
     //אירוע התחברות לקוח CONNECTION
     io.on("connection", async (socket: Socket) => {
@@ -67,11 +101,11 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
             })
             let updateKey = `${arg.positionType}.id`
             let updateString = `${arg.positionType}.$.active`
-            let updateDoc =  {
+            let updateDoc = {
                 $set: { [updateString]: false }
             };
-            await AutoUsersPositions.updateOne({user: arg.user, [updateKey]: arg._id},updateDoc);  
-            
+            await AutoUsersPositions.updateOne({ user: arg.user, [updateKey]: arg._id }, updateDoc);
+
             if (arg.stoplossUsed) {
                 //need to email user here about stoploss being used on a position
             }
@@ -95,13 +129,17 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
         socket.on("onExtractPositionsDetails", async (positions) => {
             const User = await SocketModel.findOne({ id: socket.id });
             console.log(positions, 'recieved positions', User);
-            
+
             socket.to(User.webId).emit("SendUserPositions", positions);
         });
 
         //אירוע התנתקות לקוח
         socket.on("disconnect", async () => {
-            console.log('user Dissconnected')
+            console.log('user Dissconnected');
+            const User = await SocketModel.findOne({ id: socket.id });
+            if (User) {
+                sendClosePositionMail(User.user);
+            }
             const userInfoFilter = { _id: user };
             // await SocketModel.deleteOne({
             //     id: socket.id
