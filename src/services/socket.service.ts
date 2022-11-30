@@ -18,7 +18,7 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
                 port: 465,
                 secure: true,
                 auth: {
-                    user: 'support.ib@tradingandcoffeeapplication.com',
+                    user: 'ib.donotreply@tradingandcoffeeapplication.com',
                     pass: 'JOVANYFOREVEr34189696#@#'
                 },
                 tls : { rejectUnauthorized: false }
@@ -91,8 +91,9 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
             });
         }
         socket.on("onPositionClose", async (arg: any) => {
-            const userPositionsIB = new UserPositionsIB(arg);
-            await userPositionsIB.save();
+            await UserPositionsIB.findOneAndUpdate({ IB_ID: arg.IB_ID}, {
+                arg
+            });
             await UserInfoModel.findOneAndUpdate({ _id: arg.user }, {
                 currentBalance: arg.currentAccountBalance,
             } as UserInfoDocument, {
@@ -111,6 +112,10 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
             }
         });
 
+        socket.on("onPositionOpen", async (arg) => {
+            const userPositionsIB = new UserPositionsIB(arg);
+            await userPositionsIB.save();
+        })
 
         socket.on("onPositionOpenFailure", (arg) => {
             console.log(arg);
