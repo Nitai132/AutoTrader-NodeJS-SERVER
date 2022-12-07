@@ -17,6 +17,12 @@ import passport from "passport";
 import cors from "cors";
 import positionsController from "./controllers/positionsController";
 import authController from "./controllers/authController";
+import cron from "node-cron";
+
+cron.schedule('0 9 * * 1-6', () => {
+    console.log('running every minute 1, 2, 4 and 5');
+  });
+
 
 const LocalStrategy = require("passport-local").Strategy;
 // const { localStrategyHandler, serializeUser, deserializeUser } = require('./config/passport');

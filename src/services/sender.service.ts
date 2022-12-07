@@ -3,6 +3,7 @@ import SocketModel, { SocketDocument } from "../models/socket";
 import { AutoPositions } from "../models/AutoPositions";
 import AutoUsersSymbols from "../models/AutoUsersSymbols";
 import AutoUsersPositions from "../models/AutoUsersPositions";
+import UserInfoModel, { UserInfoDocument } from "../models/usersInfo";
 
 const sendPositionToUser = async (position: any, userSetup: any, quantities: any, type: any) => {
     console.log(userSetup.userEmail, type, position, quantities);
@@ -20,7 +21,7 @@ const sendPositionToUser = async (position: any, userSetup: any, quantities: any
     if (UserHaveSymbol) {
         console.log({
             user: userSetup.userEmail,
-            _id: position._id,
+            mongoID: position._id,
             margin: userSetup[type].riskManagment.margin,
             positionType: type,
             operation: position.operation.toUpperCase(),
@@ -34,10 +35,11 @@ const sendPositionToUser = async (position: any, userSetup: any, quantities: any
         });
 
 
+
         //@ts-ignore
         await global.io.to(socket.id).emit("openPosition", {
             user: userSetup.userEmail,
-            _id: position._id,
+            mongoID: position._id,
             margin: userSetup[type].riskManagment.margin,
             positionType: type,
             operation: position.operation.toUpperCase(),
@@ -49,15 +51,10 @@ const sendPositionToUser = async (position: any, userSetup: any, quantities: any
                 takeProfit: userSetup[type].takeProfit.takeProfitPercentage
             },
         } as AutoPositions);
-
-        await AutoUsersPositions.updateOne(
-            { user: userSetup.userEmail },
-            // @ts-expect-error
-            { $push: { [type]: { id: position._id, active: true, createdAt: Date.now() } } }
-        );
-    }
+}
 };
 
 
 
 export default { sendPositionToUser };
+

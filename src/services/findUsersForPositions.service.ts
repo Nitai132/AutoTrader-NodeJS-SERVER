@@ -4,11 +4,11 @@ import { liveRateComodityDocument } from "../models/liveRateComodity.model";
 import { liveRateCurrencyPairsDocument } from "../models/liveRateCurrencyPairs.model";
 import { liveRateCryptoDocument } from "../models/liveRateCrypto.model";
 import { liveRateIndexesDocument } from "../models/liveRateIndexes.model";
+import UserPositionsIB, { usersPositionsIBDocument } from "../models/usersPositionsIB.model";
 import UserInfo, { UserInfoDocument } from "../models/usersInfo";
 import UserSetup from "../models/userSetup";
 import AutoUsersPositions from "../models/AutoUsersPositions";
 import Sender from "./sender.service";
-
 
 const checkStocksQuantities = (position: any, userSetup: any, type: any) => {
     let priceType: string;
@@ -81,20 +81,85 @@ const getActiveBuyAndSell = (position: any, userSetup: any, type: any) => {
 };
 
 const getTodayTradesAmount = async (position: any, userSetup: any, type: any) => {
-    const positions = await AutoUsersPositions.findOne({ user: userSetup.userEmail }, `${type}`);
-    const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    let todaysPositions = [];
-    if (positions[type] != null) {
-        todaysPositions = positions[type].filter((position: any) => position.createdAt > startOfToday);
-    }
-    if (positions[type] == null || positions[type].length == 0 || todaysPositions.length < userSetup[type].tradesPerDay) {
-        return true;
-    }
-    else {
-        return false;
-    }
+    //OLD CODE
+    // const positions = await AutoUsersPositions.findOne({ user: userSetup.userEmail }, `${type}`);
+    // const now = new Date();
+    // const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // let todaysPositions = [];
+    // if (positions[type] != null) {
+    //     todaysPositions = positions[type].filter((position: any) => position.createdAt > startOfToday);
+    // }
+    // if (positions[type] == null || positions[type].length == 0 || todaysPositions.length < userSetup[type].tradesPerDay) {
+    //     return true;
+    // }
+    // else {
+    //     return false;
+    // }
+    let allowed = false;
+    await UserPositionsIB.countDocuments({ user: userSetup.userEmail, positionType: type.toUpperCase() }, async (err, todayPositions) => {
+        if (err) {
+            console.log(err);
+            allowed = false;
+        } else {
+            if (todayPositions < userSetup[type].tradesPerDay || todayPositions == 0 || todayPositions == null) {
+                allowed = true;
+            } else {
+                allowed = false;
+            }
+        }
+    })
+    return allowed;
 };
+
+const checkRiskManagment = async (userSetup: any, type: any) => {
+    let riskManagmentUsed = false;
+    if (userSetup[type].riskManagment.usePositionsRisk) {
+        await UserPositionsIB.countDocuments({ user: userSetup.userEmail, succeeded: false, positionType: type.toUpperCase() }, async (err, failedPositionsCount) => {
+            if (err) {
+                console.log(err);
+                riskManagmentUsed = false;
+                console.log('resaon 3');
+            }
+            else {
+                if (failedPositionsCount >= userSetup[type].riskManagment.positionsRisk) {
+                    riskManagmentUsed = true;
+                    console.log('resaon 4');
+                } else {
+                    riskManagmentUsed = false;
+                    console.log('resaon 5');
+                }
+            };
+        });
+    };
+    if (riskManagmentUsed) {
+        console.log('RISK MANAGMENT ACTIVATED', userSetup.userEmail);
+        let updateString = `${type}.activeAccount`;
+        let updateDoc = {
+            $set: { [updateString]: false }
+        };
+        await UserSetup.updateOne({ userEmail: userSetup.userEmail }, updateDoc);
+    }
+    return riskManagmentUsed;
+}
+
+const checkSameTimeTrade = async (userSetup: any, type: any) => {
+    let toReturn = false;
+    await UserPositionsIB.countDocuments({ user: userSetup.userEmail, active: true, positionType: type.toUpperCase() }, async (err, activePositions) => {
+        if (err) {
+            console.log(err);
+            toReturn = false;
+        }
+        if (userSetup[type].riskManagment.sameTimeTrades > activePositions) {
+            console.log('resaon 1');
+            toReturn = false;
+        } else {
+            console.log('resaon 2');
+            toReturn = true;
+        }
+    })
+    return toReturn
+
+}
 
 // חיפוש משתמשים מחוברים ופעילים עבור אופציות של מניות
 export const findUsersForStockPosition = async (position: iexStocksDocument): Promise<void> => {
@@ -107,6 +172,8 @@ export const findUsersForStockPosition = async (position: iexStocksDocument): Pr
             activeBuyAndSellPosition &&
             userSetup.tradingStatus
         ) {
+            const riskManagment = await checkRiskManagment(userSetup, 'stocks');
+            const sameTimeTrades = await checkSameTimeTrade(userSetup, 'stocks');
             const userQuantities = await checkStocksQuantities(position, userSetup, "stocks");
             let currentTradingDay = false;
             if (userSetup.stocks.times.SpecificDays === false) {
@@ -121,7 +188,9 @@ export const findUsersForStockPosition = async (position: iexStocksDocument): Pr
             if (
                 Object.keys(userQuantities).length > 0 &&
                 (userSetup.stocks.times.SpecificDays === true || currentTradingDay === true) &&
-                (userSetup.stocks.times.SpecificHours === true || currentTradingHours === true)
+                (userSetup.stocks.times.SpecificHours === true || currentTradingHours === true) &&
+                riskManagment === false && 
+                sameTimeTrades === false
             ) {
                 const tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, "stocks");
                 if (tradesLimitAllowed) {
@@ -149,9 +218,11 @@ export const findUsersForBondsPosition = async (position: liveRateBondsDocument)
         if (
             userSetup.bonds.activeAccount &&
             activeBuyAndSellPosition &&
-            userSetup.tradingStatus
+            userSetup.tradingStatus 
         ) {
             let currentTradingDay = false;
+            const riskManagment = await checkRiskManagment(userSetup, 'bonds');
+            const sameTimeTrades = await checkSameTimeTrade(userSetup, 'bonds');
             if (userSetup.bonds.times.SpecificDays === false) {
                 currentTradingDay = await getTradingDays(userSetup, "bonds");
             }
@@ -163,7 +234,9 @@ export const findUsersForBondsPosition = async (position: liveRateBondsDocument)
             if (
                 (userSetup.bonds.rates.futureContracts.amount > 0 || userSetup.bonds.rates.futureContractOptions.amount > 0) &&
                 (userSetup.bonds.times.SpecificDays === true || currentTradingDay === true) &&
-                (userSetup.bonds.times.SpecificHours === true || currentTradingHours === true)
+                (userSetup.bonds.times.SpecificHours === true || currentTradingHours === true) &&
+                riskManagment === false &&
+                sameTimeTrades === false
             ) {
                 const tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, "bonds");
                 if (tradesLimitAllowed) {
@@ -189,8 +262,10 @@ export const findUsersForComodityPosition = async (position: liveRateComodityDoc
         if (
             userSetup.comodity.activeAccount &&
             activeBuyAndSellPosition &&
-            userSetup.tradingStatus
+            userSetup.tradingStatus 
         ) {
+            const riskManagment = await checkRiskManagment(userSetup, 'comodity');
+            const sameTimeTrades = await checkSameTimeTrade(userSetup, 'comodity');
             let currentTradingDay = false;
             if (userSetup.comodity.times.SpecificDays === false) {
                 currentTradingDay = await getTradingDays(userSetup, "comodity");
@@ -203,7 +278,9 @@ export const findUsersForComodityPosition = async (position: liveRateComodityDoc
             if (
                 (userSetup.comodity.rates.futureContracts.amount > 0 || userSetup.comodity.rates.futureContractOptions.amount > 0) &&
                 (userSetup.comodity.times.SpecificDays === true || currentTradingDay === true) &&
-                (userSetup.comodity.times.SpecificHours === true || currentTradingHours === true)
+                (userSetup.comodity.times.SpecificHours === true || currentTradingHours === true) && 
+                riskManagment === false &&
+                sameTimeTrades === false
             ) {
                 const tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, "comodity");
                 if (tradesLimitAllowed) {
@@ -231,6 +308,8 @@ export const findUsersForPairsPosition = async (position: liveRateCurrencyPairsD
             activeBuyAndSellPosition &&
             userSetup.tradingStatus
         ) {
+            const riskManagment = await checkRiskManagment(userSetup, 'currencyPairs');
+            const sameTimeTrades = await checkSameTimeTrade(userSetup, 'currencyPairs');
             let currentTradingDay = false;
             if (userSetup.currencyPairs.times.SpecificDays === false) {
                 currentTradingDay = await getTradingDays(userSetup, "currencyPairs");
@@ -243,7 +322,9 @@ export const findUsersForPairsPosition = async (position: liveRateCurrencyPairsD
             if (
                 (userSetup.currencyPairs.rates.futureContracts.amount > 0 || userSetup.currencyPairs.rates.futureContractOptions.amount > 0) &&
                 (userSetup.currencyPairs.times.SpecificDays === true || currentTradingDay === true) &&
-                (userSetup.currencyPairs.times.SpecificHours === true || currentTradingHours === true)
+                (userSetup.currencyPairs.times.SpecificHours === true || currentTradingHours === true) &&
+                riskManagment === false &&
+                sameTimeTrades === false
             ) {
                 const tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, "currencyPairs");
                 if (tradesLimitAllowed) {
@@ -271,6 +352,8 @@ export const findUsersForCryptoPosition = async (position: liveRateCryptoDocumen
             activeBuyAndSellPosition &&
             userSetup.tradingStatus
         ) {
+            const riskManagment = await checkRiskManagment(userSetup, 'crypto');
+            const sameTimeTrades = await checkSameTimeTrade(userSetup, 'crypto');
             let currentTradingDay = false;
             if (userSetup.crypto.times.SpecificDays === false) {
                 currentTradingDay = await getTradingDays(userSetup, "crypto");
@@ -283,7 +366,9 @@ export const findUsersForCryptoPosition = async (position: liveRateCryptoDocumen
             if (
                 (userSetup.crypto.rates.futureContracts.amount > 0 || userSetup.crypto.rates.futureContractOptions.amount > 0) &&
                 (userSetup.crypto.times.SpecificDays === true || currentTradingDay === true) &&
-                (userSetup.crypto.times.SpecificHours === true || currentTradingHours === true)
+                (userSetup.crypto.times.SpecificHours === true || currentTradingHours === true) &&
+                riskManagment === false &&
+                sameTimeTrades === false
             ) {
                 const tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, "crypto");
                 if (tradesLimitAllowed) {
@@ -311,6 +396,8 @@ export const findUsersForIndexesPosition = async (position: liveRateIndexesDocum
             activeBuyAndSellPosition &&
             userSetup.tradingStatus
         ) {
+            const riskManagment = await checkRiskManagment(userSetup, 'indexes');
+            const sameTimeTrades = await checkSameTimeTrade(userSetup, 'indexes');
             let currentTradingDay = false;
             if (userSetup.indexes.times.SpecificDays === false) {
                 currentTradingDay = await getTradingDays(userSetup, "indexes");
@@ -323,7 +410,9 @@ export const findUsersForIndexesPosition = async (position: liveRateIndexesDocum
             if (
                 (userSetup.indexes.rates.futureContracts.amount > 0 || userSetup.indexes.rates.futureContractOptions.amount > 0) &&
                 (userSetup.indexes.times.SpecificDays === true || currentTradingDay === true) &&
-                (userSetup.indexes.times.SpecificHours === true || currentTradingHours === true)
+                (userSetup.indexes.times.SpecificHours === true || currentTradingHours === true) &&
+                riskManagment === false &&
+                sameTimeTrades === false
             ) {
                 const tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, "indexes");
                 if (tradesLimitAllowed) {

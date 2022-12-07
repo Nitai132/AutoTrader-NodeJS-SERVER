@@ -91,8 +91,30 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
             });
         }
         socket.on("onPositionClose", async (arg: any) => {
+            console.log("POSITION CLOSED", arg.IB_ID);
             await UserPositionsIB.findOneAndUpdate({ IB_ID: arg.IB_ID}, {
-                arg
+                mongoID : arg.mongoID,
+                user : arg.user,
+                IB_ID: arg.IB_ID,
+                exchange : arg.exchange,
+                operation : arg.operation,
+                positionType : arg.positionType,
+                symbol : arg.symbol,
+                technologies: arg.technologies,
+                margin : arg.margin,
+                startDate : arg.startDate,
+                endDate : arg.endDate,
+                startPrice : arg.startPrice,
+                endPrice : arg.endPrice,
+                succeeded : arg.succeeded,
+                pipsed : arg.pipsed,
+                quantity : arg.quantity,
+                currentAccountBalance : arg.currentAccountBalance,
+                stopLoss : arg.stopLoss,
+                takeProfit : arg.takeProfit,
+                stoplossUsed :arg.stoplossUsed,
+                totalBrokerFee : arg.totalBrokerFee,
+                active : arg.active,
             });
             await UserInfoModel.findOneAndUpdate({ _id: arg.user }, {
                 currentBalance: arg.currentAccountBalance,
@@ -115,6 +137,12 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
         socket.on("onPositionOpen", async (arg) => {
             const userPositionsIB = new UserPositionsIB(arg);
             await userPositionsIB.save();
+            let updateString = `${arg.positionType.toLowerCase()}.tradesAmount.${arg.operation.toLowerCase()}`
+            let updateDoc = {
+                $inc: { [updateString] : 1 
+            }
+        };
+        await UserInfoModel.updateOne({ _id: arg.user }, updateDoc);
         })
 
         socket.on("onPositionOpenFailure", (arg) => {

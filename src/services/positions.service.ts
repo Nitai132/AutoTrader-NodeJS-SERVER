@@ -4,8 +4,9 @@ import Comodity from "../models/liveRateComodity.model";
 import Pairs from "../models/liveRateCurrencyPairs.model";
 import Crypto from "../models/liveRateCrypto.model";
 import Indexes from "../models/liveRateIndexes.model";
-
+import UsersInfo from '../models/usersInfo';
 import FindUsers from "./findUsersForPositions.service";
+import SocketModel, { SocketDocument } from "../models/socket";
 
 // הוספת האזנה לסטוקס עבור פוזיציות חדשות ועבור שינוי בפוזיציות קיימות
 export const listenToPositions = () => {
@@ -16,9 +17,23 @@ export const listenToPositions = () => {
     addWatchForCreatePairs();
     addWatchForCreateCrypto();
     addWatchForCreateIndexes();
+    addWatchForInfoChanges();
     // addWatchForUpdateStocks();
 
 };
+
+const addWatchForInfoChanges = () => {
+    const changeStream = UsersInfo.watch([], {
+        fullDocument: 'updateLookup'
+    });
+    changeStream.on('change', async (changes) => {
+        // const { webId } = await SocketModel.findOne({ user: changes.documentKey._id })
+        // console.log(changes.documentKey._id, webId);
+
+        // @ts-ignore
+        await global.io.emit('mongoStream', changes);
+    });
+}
 
 //הוספת האזנה לפוזיציה חדשה מסוג סטוקס
 const addWatchForCreateStocks = () => {
