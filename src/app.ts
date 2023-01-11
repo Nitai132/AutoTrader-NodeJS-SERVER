@@ -19,8 +19,8 @@ import positionsController from "./controllers/positionsController";
 import authController from "./controllers/authController";
 import cron from "node-cron";
 
-cron.schedule('0 9 * * 1-6', () => {
-    console.log('running every minute 1, 2, 4 and 5');
+cron.schedule('0 8 * * 1-6', () => {
+            
   });
 
 

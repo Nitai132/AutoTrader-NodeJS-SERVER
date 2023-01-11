@@ -6,13 +6,14 @@ import UserPositionsIB, { usersPositionsIBDocument } from "../models/usersPositi
 import User from "../models/users";
 import AutoUsersPositions, { AutoUsersPositionsDocument } from "../models/AutoUsersPositions";
 import nodemailer from 'nodemailer';
+import { userInfo } from "os";
 
 const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>): void => {
 
 
     const sendClosePositionMail = async (email: any) => {
         try {
-   
+
             var transporter = nodemailer.createTransport({
                 host: 'box2539.bluehost.com',
                 port: 465,
@@ -21,7 +22,7 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
                     user: 'ib.donotreply@tradingandcoffeeapplication.com',
                     pass: 'JOVANYFOREVEr34189696#@#'
                 },
-                tls : { rejectUnauthorized: false }
+                tls: { rejectUnauthorized: false }
             });
             var mailOptions = {
                 from: 'support.ib@tradingandcoffeeapplication.com',
@@ -92,29 +93,29 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
         }
         socket.on("onPositionClose", async (arg: any) => {
             console.log("POSITION CLOSED", arg.IB_ID);
-            await UserPositionsIB.findOneAndUpdate({ IB_ID: arg.IB_ID}, {
-                mongoID : arg.mongoID,
-                user : arg.user,
+            await UserPositionsIB.findOneAndUpdate({ IB_ID: arg.IB_ID }, {
+                mongoID: arg.mongoID,
+                user: arg.user,
                 IB_ID: arg.IB_ID,
-                exchange : arg.exchange,
-                operation : arg.operation,
-                positionType : arg.positionType,
-                symbol : arg.symbol,
+                exchange: arg.exchange,
+                operation: arg.operation,
+                positionType: arg.positionType,
+                symbol: arg.symbol,
                 technologies: arg.technologies,
-                margin : arg.margin,
-                startDate : arg.startDate,
-                endDate : arg.endDate,
-                startPrice : arg.startPrice,
-                endPrice : arg.endPrice,
-                succeeded : arg.succeeded,
-                pipsed : arg.pipsed,
-                quantity : arg.quantity,
-                currentAccountBalance : arg.currentAccountBalance,
-                stopLoss : arg.stopLoss,
-                takeProfit : arg.takeProfit,
-                stoplossUsed :arg.stoplossUsed,
-                totalBrokerFee : arg.totalBrokerFee,
-                active : arg.active,
+                margin: arg.margin,
+                startDate: arg.startDate,
+                endDate: arg.endDate,
+                startPrice: arg.startPrice,
+                endPrice: arg.endPrice,
+                succeeded: arg.succeeded,
+                pipsed: arg.pipsed,
+                quantity: arg.quantity,
+                currentAccountBalance: arg.currentAccountBalance,
+                stopLoss: arg.stopLoss,
+                takeProfit: arg.takeProfit,
+                stoplossUsed: arg.stoplossUsed,
+                totalBrokerFee: arg.totalBrokerFee,
+                active: arg.active,
             });
             await UserInfoModel.findOneAndUpdate({ _id: arg.user }, {
                 currentBalance: arg.currentAccountBalance,
@@ -139,10 +140,11 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
             await userPositionsIB.save();
             let updateString = `${arg.positionType.toLowerCase()}.tradesAmount.${arg.operation.toLowerCase()}`
             let updateDoc = {
-                $inc: { [updateString] : 1 
-            }
-        };
-        await UserInfoModel.updateOne({ _id: arg.user }, updateDoc);
+                $inc: {
+                    [updateString]: 1
+                }
+            };
+            await UserInfoModel.updateOne({ _id: arg.user }, updateDoc);
         })
 
         socket.on("onPositionOpenFailure", (arg) => {
@@ -164,6 +166,10 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
             console.log(positions, 'recieved positions', User);
 
             socket.to(User.webId).emit("SendUserPositions", positions);
+        });
+
+        socket.on("twsConnection", async (arg) => {
+            await UserInfoModel.updateOne({ _id: arg.user }, { TwsStatus: arg.status })
         });
 
         //אירוע התנתקות לקוח
