@@ -18,10 +18,40 @@ import cors from "cors";
 import positionsController from "./controllers/positionsController";
 import authController from "./controllers/authController";
 import cron from "node-cron";
+import usersPositionsIB from "./models/usersPositionsIB.model";
+import UserSetup from "./models/userSetup";
+import UserInfo from "./models/usersInfo";
 
-cron.schedule('0 8 * * 1-6', () => {
-            
-  });
+cron.schedule('0 7 * * 1-6', async () => {
+    await usersPositionsIB.deleteMany({});
+    await RiskManagmetHandler();
+    const Users  = await UserInfo.find({});
+    Users.map(async (user)=> {
+        await UserInfo.findOneAndUpdate({_id: user._id}, {startOfTheDayBalance: user.currentBalance})
+    })
+});
+
+const RiskManagmetHandler = async () => {
+    const activeRiskAccounts = await UserSetup.find({ riskActive: true });
+    activeRiskAccounts.map(async (user) => {
+        const handleAccountOnRisk = async (accountType: any) => {
+            let updateString = `${accountType}.activeAccount`;
+            let updateString2 = `accountsOnRisk.${accountType}`
+            let updateDoc = {
+                $set: { [updateString]: true, [updateString2]: false }
+            };
+            await UserSetup.updateOne({ userEmail: user.userEmail }, updateDoc)
+        }
+        user.accountsOnRisk.stocks === true ? handleAccountOnRisk('stocks') : console.log();
+        user.accountsOnRisk.comodity === true ? handleAccountOnRisk('comodity') : console.log();
+        user.accountsOnRisk.bonds === true ? handleAccountOnRisk('bonds') : console.log();
+        user.accountsOnRisk.crypto === true ? handleAccountOnRisk('crypto') : console.log();
+        user.accountsOnRisk.indexes === true ? handleAccountOnRisk('indexes') : console.log();
+        user.accountsOnRisk.currencyPairs === true ? handleAccountOnRisk('currencyPairs') : console.log();
+       await UserSetup.updateOne({ userEmail: user.userEmail }, { riskActive: false })
+
+    })
+};
 
 
 const LocalStrategy = require("passport-local").Strategy;
@@ -93,12 +123,11 @@ const init = async () => { //פונקצייה חכמה שמוודאת התחבר
             useFindAndModify: false,
             useCreateIndex: true
         };
-        
+
         await mongoose.connect(mongoUrl, mongooseConnection);
-        server.listen(PORT, () => { //הפעלת השרת
+        server.listen(PORT,async () => { //הפעלת השרת
             console.log("server is up on port" + PORT);
         });
-
     } catch (err) { //במידה והתחברות נכשלה
         console.log(err);
     }

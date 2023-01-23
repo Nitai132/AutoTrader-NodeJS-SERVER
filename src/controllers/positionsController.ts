@@ -5,8 +5,8 @@ import {closeSpecificPosition, closeAllPositions, extractPositionsDetails} from 
 
 router.post("/closeSpecificPosition", async (req : any, res : any) => {
     try {
-        const { user, positionType, symbol } = req.body; // מקבל את האיידי של הפוזיציה שיצאה פולס מהשרת השני
-        const CloseSpecificPosition : any = await closeSpecificPosition(user, positionType, symbol); // מוצא את כל היוזרים שיש להם את הפוזיציה שהיא לא נכונה
+        const { user, IB_ID } = req.body; // מקבל את האיידי של הפוזיציה שיצאה פולס מהשרת השני
+        const CloseSpecificPosition : any = await closeSpecificPosition(user, IB_ID); // מוצא את כל היוזרים שיש להם את הפוזיציה שהיא לא נכונה
         return res.json(CloseSpecificPosition); //במקרה של הצלחה
     } catch (err) {
         console.log(err); // במקרה של כשלון

@@ -1,12 +1,12 @@
 
-export const closeSpecificPosition = async (user: any, positionType: any, symbol: any) => {
+export const closeSpecificPosition = async (user: any, IB_ID: any) => {
     try {
         //@ts-ignore
         await global.io.emit("closeSpecificPosition", {
             user: user,
-            positionType: positionType,
-            symbol: symbol
+            IB_ID: IB_ID,
         });
+        console.log(user, IB_ID);
     } catch (err) {
         console.log(err);
         throw err;

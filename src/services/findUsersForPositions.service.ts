@@ -96,18 +96,13 @@ const getTodayTradesAmount = async (position: any, userSetup: any, type: any) =>
     //     return false;
     // }
     let allowed = false;
-    await UserPositionsIB.countDocuments({ user: userSetup.userEmail, positionType: type.toUpperCase() }, async (err, todayPositions) => {
-        if (err) {
-            console.log(err);
-            allowed = false;
-        } else {
+    const todayPositions = await UserPositionsIB.countDocuments({ user: userSetup.userEmail, positionType: type.toUpperCase() });
+            console.log(todayPositions, userSetup[type].tradesPerDay)
             if (todayPositions < userSetup[type].tradesPerDay || todayPositions == 0 || todayPositions == null) {
                 allowed = true;
             } else {
                 allowed = false;
             }
-        }
-    })
     return allowed;
 };
 
@@ -118,19 +113,34 @@ const checkRiskManagment = async (userSetup: any, type: any) => {
             if (err) {
                 console.log(err);
                 riskManagmentUsed = false;
-                console.log('resaon 3');
+                console.log('reason: ERROR');
             }
             else {
                 if (failedPositionsCount >= userSetup[type].riskManagment.positionsRisk) {
                     riskManagmentUsed = true;
-                    console.log('resaon 4');
+                    console.log('reason: failed positions count');
                 } else {
                     riskManagmentUsed = false;
-                    console.log('resaon 5');
                 }
             };
         });
     };
+    if (userSetup[type].riskManagment.useRatesRisk && riskManagmentUsed == false) {
+        const userInfo = await UserInfo.findOne({_id: userSetup.userEmail});
+        console.log(userInfo.currentBalance, userInfo.startOfTheDayBalance-userInfo.startOfTheDayBalance/100*userSetup[type].riskManagment.ratesRisk)
+        if (userInfo.currentBalance < userInfo.startOfTheDayBalance-userInfo.startOfTheDayBalance/100*userSetup[type].riskManagment.ratesRisk ) {
+            riskManagmentUsed = true;
+            console.log('reason: rates risk');
+        } 
+    }
+    if(userSetup[type].riskManagment.useDollarsRisk && riskManagmentUsed == false) {
+        const userInfo = await UserInfo.findOne({_id: userSetup.userEmail});
+        console.log(userInfo.currentBalance, userInfo.startOfTheDayBalance-userSetup[type].riskManagment.dollarsRisk)
+        if (userInfo.currentBalance < userInfo.startOfTheDayBalance-userSetup[type].riskManagment.dollarsRisk) {
+            riskManagmentUsed = true;
+            console.log('reason: dollars risk');
+        }
+    }
     if (riskManagmentUsed) {
         console.log('RISK MANAGMENT ACTIVATED', userSetup.userEmail);
         let updateString = `${type}.activeAccount`;
@@ -150,11 +160,10 @@ const checkSameTimeTrade = async (userSetup: any, type: any) => {
             toReturn = false;
         }
         if (userSetup[type].riskManagment.sameTimeTrades > activePositions) {
-            console.log('resaon 1');
             toReturn = false;
         } else {
-            console.log('resaon 2');
             toReturn = true;
+            console.log('reason: SAME TIME TRADES');
         }
     })
     return toReturn
@@ -188,11 +197,12 @@ export const findUsersForStockPosition = async (position: iexStocksDocument): Pr
             if (
                 Object.keys(userQuantities).length > 0 &&
                 (userSetup.stocks.times.SpecificDays === true || currentTradingDay === true) &&
-                (userSetup.stocks.times.SpecificHours === true || currentTradingHours === true) &&
-                riskManagment === false && 
-                sameTimeTrades === false
+                (userSetup.stocks.times.SpecificHours === true || currentTradingHours === true) 
+                // riskManagment === false && 
+                // sameTimeTrades === false
             ) {
                 const tradesLimitAllowed = await getTodayTradesAmount(position, userSetup, "stocks");
+                console.log(tradesLimitAllowed)
                 if (tradesLimitAllowed) {
                     console.log("success");
                     Sender.sendPositionToUser(position, userSetup, userQuantities, "stocks");

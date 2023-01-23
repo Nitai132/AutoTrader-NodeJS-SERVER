@@ -57,6 +57,21 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
                     user: socket.handshake.headers.username,
                     isAuthenticated: true
                 })
+                await SocketModel.findOneAndUpdate(filter, {
+                    id: socket.id,
+                    user: user
+                } as SocketDocument, {
+                    useFindAndModify: false,
+                    upsert: true
+                });
+                const userInfoFilter = { _id: user };
+                await UserInfoModel.findOneAndUpdate(userInfoFilter, {
+                    gatewayStatus: true,
+                    userType: socket.handshake.headers.accountType
+                } as UserInfoDocument, {
+                    useFindAndModify: false
+                });
+
             }
             else {
                 socket.emit("authenticated", {
@@ -65,19 +80,6 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
 
                 })
             }
-            await SocketModel.findOneAndUpdate(filter, {
-                id: socket.id,
-                user: user
-            } as SocketDocument, {
-                useFindAndModify: false,
-                upsert: true
-            });
-            const userInfoFilter = { _id: user };
-            await UserInfoModel.findOneAndUpdate(userInfoFilter, {
-                gatewayStatus: true
-            } as UserInfoDocument, {
-                useFindAndModify: false
-            });
         }
 
         else if (socket.handshake.query.email) {
@@ -145,6 +147,7 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
                 }
             };
             await UserInfoModel.updateOne({ _id: arg.user }, updateDoc);
+            console.log(arg, updateString);
         })
 
         socket.on("onPositionOpenFailure", (arg) => {
@@ -154,11 +157,13 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
         socket.on("onPositionCloseFailure", async (arg) => {
             const User = await SocketModel.findOne({ id: socket.id });
             socket.to(User.webId).emit("PositionCloseFailed", arg);
+            console.log(arg);
         });
 
         socket.on("onCloseAllPositionFailure", async (arg) => {
             const User = await SocketModel.findOne({ id: socket.id });
             socket.to(User.webId).emit("CloseAllPositionFailed", arg);
+            console.log(arg);
         });
 
         socket.on("onExtractPositionsDetails", async (positions) => {
@@ -168,8 +173,8 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
             socket.to(User.webId).emit("SendUserPositions", positions);
         });
 
-        socket.on("twsConnection", async (arg) => {
-            await UserInfoModel.updateOne({ _id: arg.user }, { TwsStatus: arg.status })
+        socket.on("statusTWS", async (arg) => {
+            await UserInfoModel.updateOne({ _id: arg.user }, { TwsStatus: arg.isTWSConnected })
         });
 
         //אירוע התנתקות לקוח

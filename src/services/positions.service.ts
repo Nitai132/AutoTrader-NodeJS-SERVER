@@ -12,10 +12,10 @@ import SocketModel, { SocketDocument } from "../models/socket";
 export const listenToPositions = () => {
     console.log("start listen to positions");
     addWatchForCreateStocks();
-    addWatchForCreateBonds();
+    // addWatchForCreateBonds();
     addWatchForCreateComodity();
     addWatchForCreatePairs();
-    addWatchForCreateCrypto();
+    // addWatchForCreateCrypto();
     addWatchForCreateIndexes();
     addWatchForInfoChanges();
     // addWatchForUpdateStocks();
@@ -45,13 +45,13 @@ const addWatchForCreateStocks = () => {
 };
 
 
-const addWatchForCreateBonds = () => {
-    Bonds.watch([{$match: {operationType: {$in: ["insert"]}}}]).on("change", async (data: any) => {
-        console.log("Bonds Insert action triggered");
-        console.log(new Date(), data.fullDocument);
-        FindUsers.findUsersForBondsPosition(data.fullDocument);
-    });
-};
+// const addWatchForCreateBonds = () => {
+//     Bonds.watch([{$match: {operationType: {$in: ["insert"]}}}]).on("change", async (data: any) => {
+//         console.log("Bonds Insert action triggered");
+//         console.log(new Date(), data.fullDocument);
+//         FindUsers.findUsersForBondsPosition(data.fullDocument);
+//     });
+// };
 
 const addWatchForCreateComodity = () => {
     Comodity.watch([{$match: {operationType: {$in: ["insert"]}}}]).on("change", async (data: any) => {
@@ -69,13 +69,13 @@ const addWatchForCreatePairs = () => {
     });
 };
 
-const addWatchForCreateCrypto = () => {
-    Crypto.watch([{$match: {operationType: {$in: ["insert"]}}}]).on("change", async (data: any) => {
-        console.log("Crypto Insert action triggered");
-        console.log(new Date(), data.fullDocument);
-        FindUsers.findUsersForCryptoPosition(data.fullDocument);
-    });
-};
+// const addWatchForCreateCrypto = () => {
+//     Crypto.watch([{$match: {operationType: {$in: ["insert"]}}}]).on("change", async (data: any) => {
+//         console.log("Crypto Insert action triggered");
+//         console.log(new Date(), data.fullDocument);
+//         FindUsers.findUsersForCryptoPosition(data.fullDocument);
+//     });
+// };
 
 const addWatchForCreateIndexes = () => {
     Indexes.watch([{$match: {operationType: {$in: ["insert"]}}}]).on("change", async (data: any) => {

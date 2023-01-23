@@ -11,7 +11,8 @@ const userSetupSchema = new Schema({
     indexes: Object,
     investedBalance: Number,
     currentBalance: Number,
-    tradesAmount: Object
+    tradesAmount: Object,
+    startOfTheDayBalance: Number
 }, {collection: "AutoUsersInfo"});
 
 export interface UserInfoDocument extends Document {
@@ -25,7 +26,8 @@ export interface UserInfoDocument extends Document {
     indexes?: any,
     investedBalance?: number,
     currentBalance?: number,
-    tradesAmount?: any
+    tradesAmount?: any,
+    startOfTheDayBalance: any
 }
 
 const UserInfo = model<UserInfoDocument>("AutoUsersInfo", userSetupSchema);
