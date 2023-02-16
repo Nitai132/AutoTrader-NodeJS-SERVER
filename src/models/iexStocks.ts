@@ -14,7 +14,7 @@ const iexStocksSchema = new Schema({
     pipsed: { type: Number },
     openPosId: { type: String },
     insertTime: { type: Number }
-},{collection : "iexStocks"});
+},{collection : "liveRateStocks"});
 
 export interface iexStocksDocument extends Document {
     symbol?: string,
@@ -30,6 +30,6 @@ export interface iexStocksDocument extends Document {
     insertTime?: number
 }
 
-const iexStocks = model<iexStocksDocument>("iexStocks", iexStocksSchema);
+const iexStocks = model<iexStocksDocument>("liveRateStocks", iexStocksSchema);
 
 export default iexStocks;
