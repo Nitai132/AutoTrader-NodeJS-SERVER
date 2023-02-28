@@ -4,6 +4,7 @@ const userSetupSchema = new Schema({
     _id: String,
     userType: String,
     gatewayStatus: Boolean,
+    twsStatus: Boolean,
     stocks: Object,
     bonds: Object,
     comodity: Object,
@@ -19,6 +20,7 @@ export interface UserInfoDocument extends Document {
     _id: string,
     userType?: string,
     gatewayStatus?: boolean,
+    twsStatus?: boolean
     stocks?: any,
     bonds?: any,
     comodity?: any,

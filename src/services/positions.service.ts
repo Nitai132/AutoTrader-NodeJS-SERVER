@@ -14,7 +14,7 @@ export const listenToPositions = () => {
     addWatchForCreateStocks();
     // addWatchForCreateBonds();
     addWatchForCreateComodity();
-    addWatchForCreatePairs();
+    // addWatchForCreatePairs();
     // addWatchForCreateCrypto();
     addWatchForCreateIndexes();
     addWatchForInfoChanges();
@@ -61,13 +61,13 @@ const addWatchForCreateComodity = () => {
     });
 };
 
-const addWatchForCreatePairs = () => {
-    Pairs.watch([{$match: {operationType: {$in: ["insert"]}}}]).on("change", async (data: any) => {
-        console.log("Pairs Insert action triggered");
-        console.log(new Date(), data.fullDocument);
-        FindUsers.findUsersForPairsPosition(data.fullDocument);
-    });
-};
+// const addWatchForCreatePairs = () => {
+//     Pairs.watch([{$match: {operationType: {$in: ["insert"]}}}]).on("change", async (data: any) => {
+//         console.log("Pairs Insert action triggered");
+//         console.log(new Date(), data.fullDocument);
+//         FindUsers.findUsersForPairsPosition(data.fullDocument);
+//     });
+// };
 
 // const addWatchForCreateCrypto = () => {
 //     Crypto.watch([{$match: {operationType: {$in: ["insert"]}}}]).on("change", async (data: any) => {
