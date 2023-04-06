@@ -1,7 +1,7 @@
 import { model, Schema, Document } from "mongoose";
 
 
-const usersPositionsIBSchema = new Schema({
+const shopSchema = new Schema({
     user: String,
     mongoID: String,
     IB_ID: String,
@@ -19,7 +19,7 @@ const usersPositionsIBSchema = new Schema({
     pipsed: Number,
     quantity: Number,
     currentAccountBalance: Number,
-    stopLoss: Number,
+    stopLoss: Object,
     takeProfit: Array,
     stoplossUsed: Boolean,
     totalBrokerFee: Number,
@@ -27,7 +27,7 @@ const usersPositionsIBSchema = new Schema({
     active: Boolean
 }, { collection: "usersPositionsIB" });
 
-export interface usersPositionsIBDocument extends Document {
+export interface shopDocument extends Document {
     user?: string,
     mongoID?: string,
     IB_ID?: string,
@@ -45,7 +45,7 @@ export interface usersPositionsIBDocument extends Document {
     pipsed?: number,
     quantity?: number,
     currentAccountBalance?: number,
-    stopLoss?: number,
+    stopLoss?: object,
     takeProfit?: string,
     stoplossUsed?: boolean,
     totalBrokerFee?: number,
@@ -53,6 +53,6 @@ export interface usersPositionsIBDocument extends Document {
     active?: boolean
 }
 
-const usersPositionsIB = model<usersPositionsIBDocument>("usersPositionsIB", usersPositionsIBSchema);
+const shop = model<shopDocument>("shop", shopSchema);
 
-export default usersPositionsIB;
+export default shop;

@@ -3,6 +3,7 @@ import SocketModel, { SocketDocument } from "../models/socket";
 import UserInfoModel, { UserInfoDocument } from "../models/usersInfo";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import UserPositionsIB, { usersPositionsIBDocument } from "../models/usersPositionsIB.model";
+import Shop, { shopDocument } from "../models/shop.model";
 import User from "../models/users";
 import AutoUsersPositions, { AutoUsersPositionsDocument } from "../models/AutoUsersPositions";
 import nodemailer from 'nodemailer';
@@ -95,30 +96,61 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
         }
         socket.on("onPositionClose", async (arg: any) => {
             console.log("POSITION CLOSED", arg.IB_ID);
-            await UserPositionsIB.findOneAndUpdate({ IB_ID: arg.IB_ID }, {
-                mongoID: arg.mongoID,
-                user: arg.user,
-                IB_ID: arg.IB_ID,
-                exchange: arg.exchange,
-                operation: arg.operation,
-                positionType: arg.positionType,
-                symbol: arg.symbol,
-                technologies: arg.technologies,
-                margin: arg.margin,
-                startDate: arg.startDate,
-                endDate: arg.endDate,
-                startPrice: arg.startPrice,
-                endPrice: arg.endPrice,
-                succeeded: arg.succeeded,
-                pipsed: arg.pipsed,
-                quantity: arg.quantity,
-                currentAccountBalance: arg.currentAccountBalance,
-                stopLoss: arg.stopLoss,
-                takeProfit: arg.takeProfit,
-                stoplossUsed: arg.stoplossUsed,
-                totalBrokerFee: arg.totalBrokerFee,
-                active: arg.active,
-            });
+            const d = new Date();
+            let time = d.getTime();
+            if (arg.user == "tradingandcoffeeapplication@gmail.com") {
+                await Shop.findOneAndUpdate({ IB_ID: arg.IB_ID }, {
+                    mongoID: arg.mongoID,
+                    user: arg.user,
+                    IB_ID: arg.IB_ID,
+                    exchange: arg.exchange,
+                    operation: arg.operation,
+                    positionType: arg.positionType,
+                    symbol: arg.symbol,
+                    technologies: arg.technologies,
+                    margin: arg.margin,
+                    startDate: arg.startDate,
+                    endDate: arg.endDate,
+                    startPrice: arg.startPrice,
+                    endPrice: arg.endPrice,
+                    succeeded: arg.succeeded,
+                    pipsed: arg.pipsed,
+                    quantity: arg.quantity,
+                    currentAccountBalance: arg.currentAccountBalance,
+                    stopLoss: arg.stopLoss,
+                    takeProfit: arg.takeProfit,
+                    stoplossUsed: arg.stoplossUsed,
+                    totalBrokerFee: arg.totalBrokerFee,
+                    insertTime: time,
+                    active: false,
+                })
+            } else {
+                await UserPositionsIB.findOneAndUpdate({ IB_ID: arg.IB_ID }, {
+                    mongoID: arg.mongoID,
+                    user: arg.user,
+                    IB_ID: arg.IB_ID,
+                    exchange: arg.exchange,
+                    operation: arg.operation,
+                    positionType: arg.positionType,
+                    symbol: arg.symbol,
+                    technologies: arg.technologies,
+                    margin: arg.margin,
+                    startDate: arg.startDate,
+                    endDate: arg.endDate,
+                    startPrice: arg.startPrice,
+                    endPrice: arg.endPrice,
+                    succeeded: arg.succeeded,
+                    pipsed: arg.pipsed,
+                    quantity: arg.quantity,
+                    currentAccountBalance: arg.currentAccountBalance,
+                    stopLoss: arg.stopLoss,
+                    takeProfit: arg.takeProfit,
+                    stoplossUsed: arg.stoplossUsed,
+                    totalBrokerFee: arg.totalBrokerFee,
+                    insertTime: time,
+                    active: false,
+                });
+            }
             await UserInfoModel.findOneAndUpdate({ _id: arg.user }, {
                 currentBalance: arg.currentAccountBalance,
             } as UserInfoDocument, {
@@ -138,8 +170,13 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
         });
 
         socket.on("onPositionOpen", async (arg) => {
-            const userPositionsIB = new UserPositionsIB(arg);
-            await userPositionsIB.save();
+            if (arg.user == "tradingandcoffeeapplication@gmail.com") {
+                const shopPosition = new Shop(arg);
+                await shopPosition.save();
+            } else {
+                const userPositionsIB = new UserPositionsIB(arg);
+                await userPositionsIB.save();
+            }
             let updateString = `${arg.positionType.toLowerCase()}.tradesAmount.${arg.operation.toLowerCase()}`
             let updateDoc = {
                 $inc: {
@@ -174,7 +211,12 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
         });
 
         socket.on("statusTWS", async (arg) => {
-            await UserInfoModel.updateOne({ _id: arg.user }, { TwsStatus: arg.isTWSConnected })
+            console.log(arg);
+            await UserInfoModel.findOneAndUpdate({ _id: arg.user }, {
+                twsStatus: false
+            } as UserInfoDocument, {
+                useFindAndModify: false
+            });
         });
 
         //אירוע התנתקות לקוח
@@ -189,7 +231,8 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
             //     id: socket.id
             // });
             await UserInfoModel.findOneAndUpdate(userInfoFilter, {
-                gatewayStatus: false
+                gatewayStatus: false,
+                twsStatus: false
             } as UserInfoDocument, {
                 useFindAndModify: false
             });
