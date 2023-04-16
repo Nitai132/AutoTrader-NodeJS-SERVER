@@ -7,7 +7,7 @@ import Indexes from "../models/liveRateIndexes.model";
 import UsersInfo from '../models/usersInfo';
 import FindUsers from "./findUsersForPositions.service";
 import SocketModel, { SocketDocument } from "../models/socket";
-
+import Shop from "../models/shop.model";
 // הוספת האזנה לסטוקס עבור פוזיציות חדשות ועבור שינוי בפוזיציות קיימות
 export const listenToPositions = () => {
     console.log("start listen to positions");
@@ -18,9 +18,24 @@ export const listenToPositions = () => {
     // addWatchForCreateCrypto();
     addWatchForCreateIndexes();
     addWatchForInfoChanges();
+    addWatchForShopChanges();
     // addWatchForUpdateStocks();
 
 };
+
+const addWatchForShopChanges = () => {
+    Shop.watch([], {
+        fullDocument: 'updateLookup'
+    }).on('change', async (changes) => {
+        if (changes.operationType == 'update') {
+            // @ts-ignore
+            await global.io.emit('shopUpdate', changes);
+        } else if (changes.operationType == 'insert') {
+            // @ts-ignore
+            await global.io.emit('shopInsert', changes);
+        }
+    })
+}
 
 const addWatchForInfoChanges = () => {
     const changeStream = UsersInfo.watch([], {
@@ -37,7 +52,7 @@ const addWatchForInfoChanges = () => {
 
 //הוספת האזנה לפוזיציה חדשה מסוג סטוקס
 const addWatchForCreateStocks = () => {
-    Stocks.watch([{$match: {operationType: {$in: ["insert"]}}}]).on("change", async (data: any) => {
+    Stocks.watch([{ $match: { operationType: { $in: ["insert"] } } }]).on("change", async (data: any) => {
         console.log("Stocks Insert action triggered");
         console.log(new Date(), data.fullDocument);
         FindUsers.findUsersForStockPosition(data.fullDocument);
@@ -54,7 +69,7 @@ const addWatchForCreateStocks = () => {
 // };
 
 const addWatchForCreateComodity = () => {
-    Comodity.watch([{$match: {operationType: {$in: ["insert"]}}}]).on("change", async (data: any) => {
+    Comodity.watch([{ $match: { operationType: { $in: ["insert"] } } }]).on("change", async (data: any) => {
         console.log("Comodity Insert action triggered");
         console.log(new Date(), data.fullDocument);
         FindUsers.findUsersForComodityPosition(data.fullDocument);
@@ -78,7 +93,7 @@ const addWatchForCreateComodity = () => {
 // };
 
 const addWatchForCreateIndexes = () => {
-    Indexes.watch([{$match: {operationType: {$in: ["insert"]}}}]).on("change", async (data: any) => {
+    Indexes.watch([{ $match: { operationType: { $in: ["insert"] } } }]).on("change", async (data: any) => {
         console.log("Indexes Insert action triggered");
         console.log(new Date(), data.fullDocument);
         FindUsers.findUsersForIndexesPosition(data.fullDocument);
@@ -101,4 +116,4 @@ const addWatchForCreateIndexes = () => {
 //     });
 // };
 
-export default {listenToPositions};
+export default { listenToPositions };

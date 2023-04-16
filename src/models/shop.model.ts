@@ -25,7 +25,7 @@ const shopSchema = new Schema({
     totalBrokerFee: Number,
     insertTime: Number,
     active: Boolean
-}, { collection: "usersPositionsIB" });
+}, { collection: "shop" });
 
 export interface shopDocument extends Document {
     user?: string,

@@ -213,7 +213,7 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
         socket.on("statusTWS", async (arg) => {
             console.log(arg);
             await UserInfoModel.findOneAndUpdate({ _id: arg.user }, {
-                twsStatus: false
+                twsStatus: arg.isTWSConnected
             } as UserInfoDocument, {
                 useFindAndModify: false
             });
@@ -231,7 +231,11 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
             //     id: socket.id
             // });
             await UserInfoModel.findOneAndUpdate(userInfoFilter, {
-                gatewayStatus: false,
+                gatewayStatus: false
+            } as UserInfoDocument, {
+                useFindAndModify: false
+            });
+            await UserInfoModel.findOneAndUpdate(userInfoFilter, {
                 twsStatus: false
             } as UserInfoDocument, {
                 useFindAndModify: false
