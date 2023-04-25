@@ -123,7 +123,32 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
                     totalBrokerFee: arg.totalBrokerFee,
                     insertTime: time,
                     active: false,
-                })
+                });
+                await UserPositionsIB.findOneAndUpdate({ IB_ID: arg.IB_ID }, {
+                    mongoID: arg.mongoID,
+                    user: arg.user,
+                    IB_ID: arg.IB_ID,
+                    exchange: arg.exchange,
+                    operation: arg.operation,
+                    positionType: arg.positionType,
+                    symbol: arg.symbol,
+                    technologies: arg.technologies,
+                    margin: arg.margin,
+                    startDate: arg.startDate,
+                    endDate: arg.endDate,
+                    startPrice: arg.startPrice,
+                    endPrice: arg.endPrice,
+                    succeeded: arg.succeeded,
+                    pipsed: arg.pipsed,
+                    quantity: arg.quantity,
+                    currentAccountBalance: arg.currentAccountBalance,
+                    stopLoss: arg.stopLoss,
+                    takeProfit: arg.takeProfit,
+                    stoplossUsed: arg.stoplossUsed,
+                    totalBrokerFee: arg.totalBrokerFee,
+                    insertTime: time,
+                    active: false,
+                });
             } else {
                 await UserPositionsIB.findOneAndUpdate({ IB_ID: arg.IB_ID }, {
                     mongoID: arg.mongoID,
@@ -173,6 +198,9 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
             if (arg.user == "tradingandcoffeeapplication@gmail.com") {
                 const shopPosition = new Shop(arg);
                 await shopPosition.save();
+                const userPositionsIB = new UserPositionsIB(arg);
+                await userPositionsIB.save();
+
             } else {
                 const userPositionsIB = new UserPositionsIB(arg);
                 await userPositionsIB.save();
