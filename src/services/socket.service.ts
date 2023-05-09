@@ -68,11 +68,14 @@ const addListenersToSocketAndUpdateTables = (io: Server<DefaultEventsMap, Defaul
                 const userInfoFilter = { _id: user };
                 await UserInfoModel.findOneAndUpdate(userInfoFilter, {
                     gatewayStatus: true,
+                } as UserInfoDocument, {
+                    useFindAndModify: false
+                });
+                await UserInfoModel.findOneAndUpdate(userInfoFilter, {
                     userType: socket.handshake.headers.accountType
                 } as UserInfoDocument, {
                     useFindAndModify: false
                 });
-
             }
             else {
                 socket.emit("authenticated", {
