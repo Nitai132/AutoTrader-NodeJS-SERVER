@@ -1,6 +1,17 @@
 
 import UserPositionsIB, { usersPositionsIBDocument } from "../models/usersPositionsIB.model";
 
+export const deleteAllPositions = async (user: any) => {
+    try {
+    //@ts-ignore
+        await global.io.emit("deletePositionsDB", {
+            user: user
+        });
+    } catch (err) {
+        console.log(err);
+        throw err;
+    }
+};
 export const closeSpecificPosition = async (user: any, IB_ID: any) => {
     try {
         //@ts-ignore
@@ -21,6 +32,7 @@ export const closeAllPositions = async (user: any) => {
         await global.io.emit("closeAllPositions", {
             user: user
         });
+        return user
     } catch (err) {
         console.log(err);
         throw err;
@@ -58,4 +70,5 @@ export const closePosition = async (user: any, IB_ID: any) => {
         throw err;
     }
 };
+
 

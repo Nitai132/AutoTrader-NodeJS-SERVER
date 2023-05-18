@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-import {closeSpecificPosition, closeAllPositions, extractPositionsDetails, getActivePositions, closePosition} from "../services/positionsAPIService";
+import {closeSpecificPosition, closeAllPositions, extractPositionsDetails, getActivePositions, closePosition, deleteAllPositions }
+ from "../services/positionsAPIService";
 
 router.post("/closeSpecificPosition", async (req : any, res : any) => {
     try {
@@ -56,6 +57,17 @@ router.post("/closePosition", async (req : any, res : any) => {
         console.log(err); // במקרה של כשלון
         res.sendStatus(400);
     }
+});
+
+router.post("/deletePositions", async (req: any, res: any) => {
+    try {
+        const {user} = req.body;
+        const deletePositions: any = await deleteAllPositions(user);
+        return res.json({deletedPositionsFor: user});
+    } catch(err) {
+        console.log(err);
+        res.sendStauts(400);
+    };
 });
 
 
